@@ -2,16 +2,28 @@
 
 Always check first if TODO: is already done.
 
+## How to Mark Tasks as Done
+- Use ✅ to mark a main task as completed
+- Under each completed task, add a "DONE:" note with implementation details
+- Sub-tasks that are completed should be indented and marked with "DONE:" followed by implementation details
+- Leave unmarked tasks as they are for future implementation
+
 ## Phase 1: Project Setup & Foundation
-1. Initialize Next.js project with TypeScript
-2. Set up design system
+1. Initialize Next.js project with TypeScript ✅
+   - DONE: Project initialized with Next.js and TypeScript (next.config.ts, tsconfig.json present)
+2. Set up design system ✅
    - Create CSS variables from the provided color scheme, typography, and spacing
+     - DONE: Implemented in src/styles/globals.css
    - Set up global styles
+     - DONE: Global styles configured with Tailwind and custom CSS
    - Configure fonts (Inter and Clash Display)
-3. Create basic layout components
+     - DONE: Fonts configured in src/styles/fonts.css
+3. Create basic layout components ✅
    - Header/Navigation
+     - DONE: Implemented in src/components/layout/Header.tsx
    - Main layout wrapper
    - Footer
+     - DONE: Implemented in src/components/layout/Footer.tsx
 
 ## Phase 2: Core Components Development
 1. Form Components
