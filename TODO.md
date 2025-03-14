@@ -1,5 +1,7 @@
 # Flight Search App Implementation Todo List
 
+Always check first if TODO: is already done.
+
 ## Phase 1: Project Setup & Foundation
 1. Initialize Next.js project with TypeScript
 2. Set up design system
