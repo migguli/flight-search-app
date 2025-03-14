@@ -32,4 +32,10 @@ variable "hosted_zone_id" {
   description = "Route 53 hosted zone ID (required if create_dns_record is true)"
   type        = string
   default     = ""
+}
+
+variable "notification_email" {
+  description = "Email address for notifications and alerts"
+  type        = string
+  default     = "your-email@example.com"
 } 

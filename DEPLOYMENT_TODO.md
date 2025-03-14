@@ -64,15 +64,15 @@ This document outlines the steps needed to deploy our Next.js application to AWS
 
 ## Monitoring and Logging
 
-- [ ] Set up CloudWatch alarms
-- [ ] Configure S3 and CloudFront logging
-- [ ] Set up error tracking
+- [x] Set up CloudWatch alarms
+- [x] Configure S3 and CloudFront logging
+- [x] Set up error tracking
 
 ## Security
 
 - [x] Configure appropriate IAM roles and policies
-- [ ] Set up WAF rules (optional)
-- [ ] Implement security headers in CloudFront
+- [x] Set up WAF rules (optional)
+- [x] Implement security headers in CloudFront
 
 ## Testing
 
@@ -88,12 +88,12 @@ This document outlines the steps needed to deploy our Next.js application to AWS
 
 ## Cost Optimization
 
-- [ ] Review and optimize CloudFront distribution settings
-- [ ] Set up cost alarms
-- [ ] Configure lifecycle policies for S3
+- [x] Review and optimize CloudFront distribution settings
+- [x] Set up cost alarms
+- [x] Configure lifecycle policies for S3
 
 ## Post-Deployment
 
-- [ ] Set up monitoring for the production environment
+- [x] Set up monitoring for the production environment
 - [ ] Create a maintenance plan
 - [ ] Document the deployed architecture 
