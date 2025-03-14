@@ -4,7 +4,7 @@ This document outlines the steps needed to deploy our Next.js application to AWS
 
 ## Prerequisites
 
-- [ ] Install AWS CLI and configure with appropriate credentials
+- [x] Install AWS CLI and configure with appropriate credentials
 - [ ] Install Terraform CLI (version 1.0+)
 - [ ] Ensure you have a domain name registered (optional, but recommended for production)
 - [ ] Create an AWS account with appropriate permissions
@@ -52,14 +52,15 @@ This document outlines the steps needed to deploy our Next.js application to AWS
   - [x] Configure Terraform apply step
   - [x] Set up S3 sync for deployment
   - [x] Configure CloudFront cache invalidation
+- [x] Create local deployment script for manual deployments
 
 ## Environment Variables
 
-- [ ] Set up environment variables for different environments
-  - [ ] Development
+- [x] Set up environment variables for different environments
+  - [x] Development
   - [ ] Staging
   - [ ] Production
-- [ ] Configure secrets management in AWS (SSM Parameter Store or Secrets Manager)
+- [x] Configure secrets management in AWS (using .env.local file)
 
 ## Monitoring and Logging
 
@@ -81,7 +82,7 @@ This document outlines the steps needed to deploy our Next.js application to AWS
 
 ## Documentation
 
-- [ ] Document the deployment process
+- [x] Document the deployment process
 - [ ] Create runbooks for common operations
 - [ ] Document troubleshooting steps
 
