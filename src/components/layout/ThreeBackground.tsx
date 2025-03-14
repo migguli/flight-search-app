@@ -10,7 +10,7 @@ const LoadingPlaceholder = () => <div className={styles.container} aria-hidden="
 
 // Dynamically import the actual component with no SSR
 const ThreeBackgroundClient = dynamic(
-  () => import('./ThreeBackgroundClient'),
+  () => import('@/components/layout/ThreeBackgroundClient'),
   { ssr: false, loading: () => <LoadingPlaceholder /> }
 );
 

@@ -69,10 +69,10 @@ const mockApartment = {
 
 // Define the interface for page props to match Next.js expectations
 type ApartmentPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
-  searchParams?: Record<string, string | string[] | undefined>;
+  }>;
+  searchParams?: Promise<any> | undefined;
 };
 
 // Server component that gets the data
@@ -81,8 +81,11 @@ export default async function Page({ params }: ApartmentPageProps) {
   let error = null;
   
   try {
+    // Await the params promise to get the id
+    const { id } = await params;
+    
     // Try to fetch the apartment details from the API
-    apartment = await AccommodationService.getAccommodationById(params.id);
+    apartment = await AccommodationService.getAccommodationById(id);
   } catch (err) {
     // Handle API errors
     console.error("Error fetching apartment details:", err);
