@@ -1,4 +1,4 @@
-import { API_BASE_URL, DEFAULT_HEADERS, handleApiResponse } from './config';
+import { API_BASE_URL, DEFAULT_HEADERS, handleApiResponse, ApiError } from './config';
 import type { Accommodation, AccommodationSearchParams, AccommodationSearchResponse } from '../types/accommodation';
 import { getRandomImagesForProperty } from '../utils/images';
 
@@ -220,18 +220,49 @@ export class AccommodationService {
         return this.getMockAccommodationById(id);
       }
 
+      console.log(`Fetching accommodation details from: ${API_BASE_URL}/accommodations/${id}`);
+      
       const response = await fetch(
         `${API_BASE_URL}/accommodations/${id}`,
         {
           method: 'GET',
-          headers: DEFAULT_HEADERS,
+          headers: {
+            ...DEFAULT_HEADERS,
+            // Add any authentication headers if needed
+            // 'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_KEY}`,
+          },
+          // Add credentials if needed for cookies/auth
+          credentials: 'include',
         }
       );
+
+      // Log response status for debugging
+      console.log(`API response status: ${response.status}`);
+      
+      if (response.status === 403) {
+        console.error('403 Forbidden error when fetching accommodation details. Please check API credentials and permissions.');
+        throw new ApiError(
+          403,
+          'You don\'t have permission to access this resource. Please check your API credentials.',
+          { id }
+        );
+      }
 
       return handleApiResponse(response);
     } catch (error) {
       console.warn('API call failed, falling back to mock data:', error);
-      return this.getMockAccommodationById(id);
+      
+      // Rethrow the error if it's already an ApiError
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      
+      // Otherwise create a new ApiError
+      throw new ApiError(
+        500, 
+        'Failed to fetch accommodation details from API', 
+        { originalError: error, id }
+      );
     }
   }
 

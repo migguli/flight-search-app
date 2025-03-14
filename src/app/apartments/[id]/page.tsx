@@ -1,6 +1,7 @@
 import { Accommodation } from '@/lib/types/accommodation';
 import { ApartmentDetailsClient } from './client';
 import { AccommodationService } from '@/lib/api/accommodationService';
+import { ApiError } from '@/lib/api/config';
 
 // Generate static parameters for export
 export function generateStaticParams() {
@@ -67,10 +68,32 @@ const mockApartment = {
 };
 
 // Server component that gets the data
-export default function Page() {
-  // For static generation, just use mock data to ensure it builds
-  // In a real app, this would fetch from an API or database
-  const apartment = mockApartment as Accommodation;
+export default async function Page({ params }: { params: { id: string } }) {
+  let apartment: Accommodation;
+  let error = null;
   
-  return <ApartmentDetailsClient apartment={apartment} />;
+  try {
+    // Try to fetch the apartment details from the API
+    apartment = await AccommodationService.getAccommodationById(params.id);
+  } catch (err) {
+    // Handle API errors
+    console.error("Error fetching apartment details:", err);
+    
+    if (err instanceof ApiError && err.status === 403) {
+      error = {
+        status: 403,
+        message: "You don't have permission to access this apartment details. Please check your authentication credentials."
+      };
+    } else {
+      error = {
+        status: 500,
+        message: "Failed to load apartment details. Using fallback data."
+      };
+    }
+    
+    // Use mock data as fallback
+    apartment = mockApartment as Accommodation;
+  }
+  
+  return <ApartmentDetailsClient apartment={apartment} error={error} />;
 } 

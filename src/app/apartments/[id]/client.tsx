@@ -8,15 +8,20 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { useState } from 'react';
 import type { Accommodation } from '@/lib/types/accommodation';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 interface ApartmentDetailsClientProps {
   apartment: Accommodation;
+  error?: {
+    status: number;
+    message: string;
+  } | null;
 }
 
-export function ApartmentDetailsClient({ apartment }: ApartmentDetailsClientProps) {
+export function ApartmentDetailsClient({ apartment, error }: ApartmentDetailsClientProps) {
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [error, setError] = useState<string | null>(null);
+  const [bookingError, setBookingError] = useState<string | null>(null);
 
   const handleReserve = () => {
     // Implementation for reservation logic
@@ -39,6 +44,26 @@ export function ApartmentDetailsClient({ apartment }: ApartmentDetailsClientProp
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Error Message */}
+      {error && (
+        <Alert variant="destructive" className="mb-8">
+          <AlertTitle>Error {error.status}</AlertTitle>
+          <AlertDescription>{error.message}</AlertDescription>
+          {error.status === 403 && (
+            <div className="mt-2">
+              <p className="text-sm">
+                This may be due to:
+              </p>
+              <ul className="list-disc pl-5 text-sm mt-1">
+                <li>Missing or invalid API credentials</li>
+                <li>Incorrect API URL configuration</li>
+                <li>Server-side permissions issue</li>
+              </ul>
+            </div>
+          )}
+        </Alert>
+      )}
+
       {/* Header Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">{apartment.title}</h1>
@@ -151,9 +176,9 @@ export function ApartmentDetailsClient({ apartment }: ApartmentDetailsClientProp
               Reserve
             </Button>
             
-            {error && (
+            {bookingError && (
               <p className="mt-2 text-sm text-amber-500">
-                {error}
+                {bookingError}
               </p>
             )}
           </Card>
