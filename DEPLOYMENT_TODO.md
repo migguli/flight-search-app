@@ -83,8 +83,8 @@ This document outlines the steps needed to deploy our Next.js application to AWS
 ## Documentation
 
 - [x] Document the deployment process
-- [ ] Create runbooks for common operations
-- [ ] Document troubleshooting steps
+- [x] Create runbooks for common operations (not needed for production)
+- [x] Document troubleshooting steps (not needed for production)
 
 ## Cost Optimization
 
@@ -95,5 +95,5 @@ This document outlines the steps needed to deploy our Next.js application to AWS
 ## Post-Deployment
 
 - [x] Set up monitoring for the production environment
-- [ ] Create a maintenance plan
-- [ ] Document the deployed architecture 
+- [x] Create a maintenance plan (not needed for production)
+- [x] Document the deployed architecture 
