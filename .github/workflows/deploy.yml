@@ -1,0 +1,87 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build Next.js app
+        run: npm run export
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.0"
+          
+      - name: Terraform Init
+        run: |
+          cd terraform
+          terraform init
+          
+      - name: Create Terraform Variables File
+        run: |
+          cd terraform
+          echo 'aws_region = "${{ env.AWS_REGION }}"' > terraform.tfvars
+          echo 'environment = "${{ env.ENVIRONMENT }}"' >> terraform.tfvars
+          echo 'app_name = "flight-search-app"' >> terraform.tfvars
+      
+      - name: Terraform Apply
+        run: |
+          cd terraform
+          terraform apply -auto-approve
+      
+      - name: Get S3 bucket name
+        id: get_bucket
+        run: |
+          cd terraform
+          BUCKET_NAME=$(terraform output -raw s3_bucket_name)
+          echo "::set-output name=bucket_name::$BUCKET_NAME"
+          
+      - name: Deploy to S3
+        run: |
+          aws s3 sync out/ s3://${{ steps.get_bucket.outputs.bucket_name }} --delete
+      
+      - name: Get CloudFront distribution ID
+        id: get_cf_id
+        run: |
+          cd terraform
+          CF_ID=$(terraform output -raw cloudfront_distribution_id)
+          echo "::set-output name=cf_id::$CF_ID"
+      
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ steps.get_cf_id.outputs.cf_id }} --paths "/*"
+      
+      - name: Output website URL
+        run: |
+          cd terraform
+          WEBSITE_URL=$(terraform output -raw website_url)
+          echo "Website deployed to: $WEBSITE_URL" 

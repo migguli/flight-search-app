@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
   images: {
     remotePatterns: [
       {
@@ -22,7 +23,8 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'placekitten.com',
       }
-    ]
+    ],
+    unoptimized: true
   }
 };
 

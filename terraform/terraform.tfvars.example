@@ -1,0 +1,6 @@
+aws_region     = "us-east-1"
+environment    = "dev"
+app_name       = "flight-search-app"
+domain_name    = "" # Optional: Set to your domain if you have one
+create_dns_record = false
+hosted_zone_id = "" # Required if create_dns_record is true 

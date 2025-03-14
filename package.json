@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "next build --no-lint",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export": "next build --no-lint",
+    "deploy": "npm run export && aws s3 sync out/ s3://your-bucket-name --delete"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",

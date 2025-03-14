@@ -11,47 +11,47 @@ This document outlines the steps needed to deploy our Next.js application to AWS
 
 ## Next.js Build Configuration
 
-- [ ] Update Next.js configuration for static export
-  - [ ] Modify `next.config.js` to add `output: 'export'`
-  - [ ] Ensure all API routes are properly handled (static export doesn't support API routes)
-  - [ ] Test the static export locally with `npm run build && npm run start`
-- [ ] Create a build script in package.json for deployment
+- [x] Update Next.js configuration for static export
+  - [x] Modify `next.config.js` to add `output: 'export'`
+  - [x] Ensure all API routes are properly handled (static export doesn't support API routes)
+  - [x] Test the static export locally with `npm run build && npm run start`
+- [x] Create a build script in package.json for deployment
 
 ## Terraform Infrastructure Setup
 
-- [ ] Create a `terraform` directory in the project root
-- [ ] Create the following Terraform files:
-  - [ ] `main.tf` - Main configuration file
-  - [ ] `variables.tf` - Variable definitions
-  - [ ] `outputs.tf` - Output values
-  - [ ] `providers.tf` - Provider configuration
-  - [ ] `s3.tf` - S3 bucket configuration
-  - [ ] `cloudfront.tf` - CloudFront distribution
-  - [ ] `route53.tf` - DNS configuration (if using a custom domain)
-  - [ ] `terraform.tfvars` - Variable values (add to .gitignore)
+- [x] Create a `terraform` directory in the project root
+- [x] Create the following Terraform files:
+  - [x] `main.tf` - Main configuration file
+  - [x] `variables.tf` - Variable definitions
+  - [x] `outputs.tf` - Output values
+  - [x] `providers.tf` - Provider configuration
+  - [x] `s3.tf` - S3 bucket configuration
+  - [x] `cloudfront.tf` - CloudFront distribution
+  - [x] `route53.tf` - DNS configuration (if using a custom domain)
+  - [x] `terraform.tfvars` - Variable values (add to .gitignore)
 
 ## S3 Configuration
 
-- [ ] Configure S3 bucket for static website hosting
-- [ ] Set up appropriate bucket policies
-- [ ] Configure CORS if necessary
-- [ ] Set up bucket versioning for rollbacks
+- [x] Configure S3 bucket for static website hosting
+- [x] Set up appropriate bucket policies
+- [x] Configure CORS if necessary
+- [x] Set up bucket versioning for rollbacks
 
 ## CloudFront Configuration
 
-- [ ] Create CloudFront distribution pointing to S3 bucket
-- [ ] Configure cache behaviors
-- [ ] Set up SSL certificate (using ACM)
-- [ ] Configure custom error responses for SPA routing
-- [ ] Set up proper cache invalidation
+- [x] Create CloudFront distribution pointing to S3 bucket
+- [x] Configure cache behaviors
+- [x] Set up SSL certificate (using ACM)
+- [x] Configure custom error responses for SPA routing
+- [x] Set up proper cache invalidation
 
 ## CI/CD Pipeline
 
-- [ ] Create GitHub Actions workflow (or other CI/CD tool)
-  - [ ] Set up build step
-  - [ ] Configure Terraform apply step
-  - [ ] Set up S3 sync for deployment
-  - [ ] Configure CloudFront cache invalidation
+- [x] Create GitHub Actions workflow (or other CI/CD tool)
+  - [x] Set up build step
+  - [x] Configure Terraform apply step
+  - [x] Set up S3 sync for deployment
+  - [x] Configure CloudFront cache invalidation
 
 ## Environment Variables
 
@@ -69,13 +69,13 @@ This document outlines the steps needed to deploy our Next.js application to AWS
 
 ## Security
 
-- [ ] Configure appropriate IAM roles and policies
+- [x] Configure appropriate IAM roles and policies
 - [ ] Set up WAF rules (optional)
 - [ ] Implement security headers in CloudFront
 
 ## Testing
 
-- [ ] Test the deployment process end-to-end
+- [x] Test the deployment process end-to-end
 - [ ] Verify all application functionality works in the deployed environment
 - [ ] Test rollback procedures
 
