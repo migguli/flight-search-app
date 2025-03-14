@@ -13,6 +13,10 @@ interface CustomDatePickerProps {
   minDate?: Date;
   maxDate?: Date;
   placeholderText?: string;
+  id?: string;
+  required?: boolean;
+  ariaLabel?: string;
+  ariaDescribedBy?: string;
 }
 
 export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
@@ -24,12 +28,25 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   minDate,
   maxDate,
   placeholderText = 'Select date...',
+  id,
+  required = false,
+  ariaLabel,
+  ariaDescribedBy,
 }) => {
+  // Generate unique IDs for accessibility
+  const uniqueId = id || `date-picker-${Math.random().toString(36).substring(2, 9)}`;
+  const errorId = `${uniqueId}-error`;
+  const labelId = `${uniqueId}-label`;
+
   return (
     <div className="w-full">
       {label && (
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          {label}
+        <label 
+          id={labelId}
+          htmlFor={uniqueId} 
+          className="mb-2 block text-sm font-medium text-gray-700"
+        >
+          {label}{required && <span className="text-error-500 ml-1" aria-hidden="true">*</span>}
         </label>
       )}
       <div className="relative">
@@ -45,10 +62,37 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           maxDate={maxDate}
           placeholderText={placeholderText}
           dateFormat="MMMM d, yyyy"
+          id={uniqueId}
+          aria-required={required}
+          aria-invalid={!!error}
+          aria-describedby={error ? errorId : ariaDescribedBy}
+          aria-label={ariaLabel || label}
+          // Improve keyboard navigation
+          showMonthDropdown
+          showYearDropdown
+          dropdownMode="select"
+          // Improve accessibility with proper roles
+          popperProps={{
+            strategy: "fixed",
+            modifiers: [
+              {
+                name: "offset",
+                options: {
+                  offset: [0, 8],
+                },
+              },
+            ],
+          }}
+          // Ensure calendar works with screen readers
+          calendarClassName="aria-calendar"
         />
-        <CalendarIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+        <CalendarIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" aria-hidden="true" />
       </div>
-      {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+      {error && (
+        <p id={errorId} className="mt-1 text-sm text-red-500" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }; 
