@@ -7,8 +7,8 @@
     "build": "next build --no-lint",
     "start": "next start",
     "lint": "next lint",
-    "export": "next build --no-lint",
-    "deploy": "npm run export && aws s3 sync out/ s3://$AWS_S3_BUCKET --delete && aws cloudfront create-invalidation --distribution-id $AWS_CLOUDFRONT_DISTRIBUTION_ID --paths \"/*\"",
+    "export": "next export",
+    "deploy": "npm run build && npm run export && aws s3 sync out/ s3://$AWS_S3_BUCKET --delete && aws cloudfront create-invalidation --distribution-id $AWS_CLOUDFRONT_DISTRIBUTION_ID --paths \"/*\"",
     "deploy:init": "cd terraform && terraform init && terraform apply -auto-approve"
   },
   "dependencies": {

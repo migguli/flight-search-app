@@ -67,8 +67,16 @@ const mockApartment = {
   }
 };
 
+// Define the interface for page props to match Next.js expectations
+type ApartmentPageProps = {
+  params: {
+    id: string;
+  };
+  searchParams?: Record<string, string | string[] | undefined>;
+};
+
 // Server component that gets the data
-export default async function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: ApartmentPageProps) {
   let apartment: Accommodation;
   let error = null;
   
