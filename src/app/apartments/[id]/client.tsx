@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { useState } from 'react';
 import type { Accommodation } from '@/lib/types/accommodation';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 interface ApartmentDetailsClientProps {
   apartment: Accommodation;
@@ -46,22 +45,22 @@ export function ApartmentDetailsClient({ apartment, error }: ApartmentDetailsCli
     <div className="container mx-auto px-4 py-8">
       {/* Error Message */}
       {error && (
-        <Alert variant="destructive" className="mb-8">
-          <AlertTitle>Error {error.status}</AlertTitle>
-          <AlertDescription>{error.message}</AlertDescription>
+        <div className="mb-8 p-4 border border-red-300 bg-red-50 rounded-lg">
+          <h2 className="text-lg font-semibold text-red-700">Error {error.status}</h2>
+          <p className="text-red-600">{error.message}</p>
           {error.status === 403 && (
             <div className="mt-2">
-              <p className="text-sm">
+              <p className="text-sm text-red-600">
                 This may be due to:
               </p>
-              <ul className="list-disc pl-5 text-sm mt-1">
+              <ul className="list-disc pl-5 text-sm mt-1 text-red-600">
                 <li>Missing or invalid API credentials</li>
                 <li>Incorrect API URL configuration</li>
                 <li>Server-side permissions issue</li>
               </ul>
             </div>
           )}
-        </Alert>
+        </div>
       )}
 
       {/* Header Section */}
