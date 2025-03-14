@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FlightSearchForm, FlightSearchParams } from '@/components/features/FlightSearchForm';
+import { FlightSearchForm, FlightSearchParams } from '@/components/features/search/FlightSearchForm';
 import { FlightSearchResults, Flight } from '@/components/features/FlightSearchResults';
 import { FlightFilters } from '@/components/features/FlightFilters';
 import { TodoList } from '@/components/features/todo/TodoList';

@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { format } from 'date-fns'
 import { Calendar as CalendarIcon } from 'lucide-react'
+import React from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -44,21 +45,43 @@ const formSchema = z.object({
   class: z.string().min(1, 'Class is required'),
 })
 
-export default function FlightSearchForm() {
-  const [isRoundTrip, setIsRoundTrip] = useState(false)
+export interface FlightSearchParams {
+  origin: string;
+  destination: string;
+  departureDate: Date;
+  returnDate?: Date;
+  passengers: string;
+  class: string;
+}
+
+interface FlightSearchFormProps {
+  onSearch: (searchParams: FlightSearchParams) => void;
+}
+
+export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) => {
+  const [isRoundTrip, setIsRoundTrip] = useState(true)
+
+  const defaultValues = {
+    origin: 'Helsinki',
+    destination: 'London',
+    passengers: '2',
+    class: 'economy',
+    departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+    returnDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+  }
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      origin: '',
-      destination: '',
-      passengers: '1',
-      class: 'economy',
-    },
+    defaultValues,
   })
 
+  // Initialize form with default values
+  React.useEffect(() => {
+    form.reset(defaultValues)
+  }, [])
+
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+    onSearch(values)
   }
 
   return (
@@ -124,13 +147,9 @@ export default function FlightSearchForm() {
                       <FormControl>
                         <Button
                           variant="outline"
-                          className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                          className={`w-full pl-3 text-left font-normal`}
                         >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
+                          {format(field.value || new Date(), "PPP")}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
@@ -164,13 +183,9 @@ export default function FlightSearchForm() {
                         <FormControl>
                           <Button
                             variant="outline"
-                            className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                            className={`w-full pl-3 text-left font-normal`}
                           >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
+                            {format(field.value || new Date(), "PPP")}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
@@ -201,10 +216,12 @@ export default function FlightSearchForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Passengers</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select number of passengers" />
+                        <SelectValue defaultValue={field.value}>
+                          {field.value} {parseInt(field.value) === 1 ? 'Passenger' : 'Passengers'}
+                        </SelectValue>
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -226,10 +243,12 @@ export default function FlightSearchForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Class</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select class" />
+                        <SelectValue defaultValue={field.value}>
+                          {field.value.charAt(0).toUpperCase() + field.value.slice(1)}
+                        </SelectValue>
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
