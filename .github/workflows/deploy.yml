@@ -7,6 +7,13 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# Add permissions to the GITHUB_TOKEN
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  statuses: write
+  
 env:
   AWS_REGION: us-east-1
   AWS_S3_BUCKET: flight-search-app-dev
@@ -61,13 +68,30 @@ jobs:
             const run_number = context.runNumber;
             const status = '${{ job.status }}';
             
-            const message = status === 'success'
-              ? `✅ Deployment #${run_number} to dev bucket completed successfully!`
-              : `❌ Deployment #${run_number} failed. Check the [workflow run](https://github.com/${owner}/${repo}/actions/runs/${run_id}) for details.`;
-            
-            await github.rest.repos.createCommitComment({
-              owner,
-              repo,
-              commit_sha: context.sha,
-              body: message
-            }); 
+            try {
+              // Try to create commit comment first
+              await github.rest.repos.createCommitComment({
+                owner,
+                repo,
+                commit_sha: context.sha,
+                body: status === 'success'
+                  ? `✅ Deployment #${run_number} to dev bucket completed successfully!`
+                  : `❌ Deployment #${run_number} failed. Check the [workflow run](https://github.com/${owner}/${repo}/actions/runs/${run_id}) for details.`
+              });
+            } catch (error) {
+              console.log(`Unable to create commit comment: ${error.message}`);
+              
+              // If PR event, comment on PR instead
+              if (context.payload.pull_request) {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: status === 'success'
+                    ? `✅ Deployment #${run_number} to dev bucket completed successfully!`
+                    : `❌ Deployment #${run_number} failed. Check the [workflow run](https://github.com/${owner}/${repo}/actions/runs/${run_id}) for details.`
+                });
+              } else {
+                console.log('This is not a PR event, and creating commit comment failed. No status message will be posted.');
+              }
+            } 
