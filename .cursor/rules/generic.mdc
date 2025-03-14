@@ -5,10 +5,6 @@ alwaysApply: false
 ---
 # Optimized for Claude (XML format)
 
-<project>
-This is a NextJS 15 / React 19 / Typescript / Tailwind CSS application with Jest and Cypress test frameworks.
-</project>
-
 <tools>
 #internal tools
 run_terminal_cmd - Executes terminal commands
