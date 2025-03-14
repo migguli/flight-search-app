@@ -3,14 +3,116 @@ name: Deploy to AWS
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 env:
   AWS_REGION: us-east-1
   ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+  TF_WORKING_DIR: terraform
 
 jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.0"
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+          
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        continue-on-error: true
+          
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+          
+      - name: Create Terraform Variables File
+        run: |
+          echo 'aws_region = "${{ env.AWS_REGION }}"' > terraform.tfvars
+          echo 'environment = "${{ env.ENVIRONMENT }}"' >> terraform.tfvars
+          echo 'app_name = "flight-search-app"' >> terraform.tfvars
+          echo 'notification_email = "${{ secrets.NOTIFICATION_EMAIL }}"' >> terraform.tfvars
+        working-directory: ${{ env.TF_WORKING_DIR }}
+      
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -no-color
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        continue-on-error: true
+      
+      - name: Update Pull Request with Plan
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+      
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: terraform apply -auto-approve
+        working-directory: ${{ env.TF_WORKING_DIR }}
+      
+      - name: Export Terraform Outputs
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        id: terraform_output
+        run: |
+          echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
+          echo "cloudfront_distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT
+          echo "website_url=$(terraform output -raw website_url)" >> $GITHUB_OUTPUT
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
   build-and-deploy:
+    name: 'Build and Deploy'
+    needs: terraform
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     
     steps:
@@ -27,7 +129,9 @@ jobs:
         run: npm ci
       
       - name: Build Next.js app
-        run: npm run export
+        run: npm run build && npm run export
+        env:
+          NEXT_PUBLIC_API_URL: ${{ needs.terraform.outputs.website_url }}/api
       
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -35,53 +139,33 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-      
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.7.0"
-          
-      - name: Terraform Init
-        run: |
-          cd terraform
-          terraform init
-          
-      - name: Create Terraform Variables File
-        run: |
-          cd terraform
-          echo 'aws_region = "${{ env.AWS_REGION }}"' > terraform.tfvars
-          echo 'environment = "${{ env.ENVIRONMENT }}"' >> terraform.tfvars
-          echo 'app_name = "flight-search-app"' >> terraform.tfvars
-      
-      - name: Terraform Apply
-        run: |
-          cd terraform
-          terraform apply -auto-approve
-      
-      - name: Get S3 bucket name
-        id: get_bucket
-        run: |
-          cd terraform
-          BUCKET_NAME=$(terraform output -raw s3_bucket_name)
-          echo "::set-output name=bucket_name::$BUCKET_NAME"
           
       - name: Deploy to S3
         run: |
-          aws s3 sync out/ s3://${{ steps.get_bucket.outputs.bucket_name }} --delete
-      
-      - name: Get CloudFront distribution ID
-        id: get_cf_id
-        run: |
-          cd terraform
-          CF_ID=$(terraform output -raw cloudfront_distribution_id)
-          echo "::set-output name=cf_id::$CF_ID"
+          aws s3 sync out/ s3://${{ needs.terraform.outputs.s3_bucket_name }} --delete
       
       - name: Invalidate CloudFront cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ steps.get_cf_id.outputs.cf_id }} --paths "/*"
+          aws cloudfront create-invalidation --distribution-id ${{ needs.terraform.outputs.cloudfront_distribution_id }} --paths "/*"
       
-      - name: Output website URL
-        run: |
-          cd terraform
-          WEBSITE_URL=$(terraform output -raw website_url)
-          echo "Website deployed to: $WEBSITE_URL" 
+      - name: Deployment Status
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const run_id = context.runId;
+            const run_number = context.runNumber;
+            const status = '${{ job.status }}';
+            
+            const message = status === 'success'
+              ? `✅ Deployment #${run_number} completed successfully! Website available at: ${{ needs.terraform.outputs.website_url }}`
+              : `❌ Deployment #${run_number} failed. Check the [workflow run](https://github.com/${owner}/${repo}/actions/runs/${run_id}) for details.`;
+            
+            await github.rest.repos.createCommitComment({
+              owner,
+              repo,
+              commit_sha: context.sha,
+              body: message
+            }); 

@@ -273,3 +273,22 @@ For security, restrict your Google Maps API key:
 3. Select your departure and return dates
 4. Click "Search Flights" to see available options
 
+## CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and continuous deployment to AWS. The pipeline automatically:
+
+1. Validates Terraform code
+2. Plans infrastructure changes
+3. Applies infrastructure changes
+4. Builds the Next.js application
+5. Deploys to S3
+6. Invalidates CloudFront cache
+
+### How it works
+
+- **On Pull Requests**: The pipeline runs Terraform validation and planning, posting the results as comments on the PR.
+- **On Push to Main**: The pipeline runs the full deployment process, applying Terraform changes and deploying the application.
+- **Manual Trigger**: You can also manually trigger the workflow from the GitHub Actions tab.
+
+For detailed setup instructions and configuration details, see [.github/CICD_SETUP.md](.github/CICD_SETUP.md).
+
