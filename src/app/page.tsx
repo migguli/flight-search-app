@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { FlightSearchForm, FlightSearchParams as FormSearchParams } from '@/components/features/search/FlightSearchForm';
 import { FlightSearchResults, Flight, transformAPIFlight } from '@/components/features/FlightSearchResults';
-import { TodoList } from '@/components/features/todo/TodoList';
 import { FlightService } from '@/lib/api/flightService';
 import { ApiError } from '@/lib/api/config';
 import type { FlightSearchParams } from '@/lib/types/flight';
@@ -74,11 +73,6 @@ export default function Home() {
               />
             </div>
           )}
-
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold text-center mb-6">Travel Todo List</h2>
-            <TodoList />
-          </div>
         </div>
       </div>
     </main>
