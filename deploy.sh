@@ -41,7 +41,14 @@ fi
 echo "Building Next.js app..."
 npm run export
 
-# Deploy to S3
+# Add cache control headers to HTML files in the output directory
+echo "Setting cache control headers for static files..."
+find out -type f -name "*.html" -exec aws s3 cp {} s3://$AWS_S3_BUCKET/{} --cache-control "no-cache, no-store, must-revalidate" --content-type "text/html" --metadata-directive REPLACE --profile $AWS_PROFILE \;
+find out -type f -name "*.js" -exec aws s3 cp {} s3://$AWS_S3_BUCKET/{} --cache-control "no-cache, no-store, must-revalidate" --content-type "application/javascript" --metadata-directive REPLACE --profile $AWS_PROFILE \;
+find out -type f -name "*.css" -exec aws s3 cp {} s3://$AWS_S3_BUCKET/{} --cache-control "no-cache, no-store, must-revalidate" --content-type "text/css" --metadata-directive REPLACE --profile $AWS_PROFILE \;
+find out -type f -name "*.json" -exec aws s3 cp {} s3://$AWS_S3_BUCKET/{} --cache-control "no-cache, no-store, must-revalidate" --content-type "application/json" --metadata-directive REPLACE --profile $AWS_PROFILE \;
+
+# Deploy remaining files to S3
 echo "Deploying to S3 bucket: $AWS_S3_BUCKET"
 aws s3 sync out/ s3://$AWS_S3_BUCKET --delete --profile $AWS_PROFILE
 
@@ -49,6 +56,10 @@ aws s3 sync out/ s3://$AWS_S3_BUCKET --delete --profile $AWS_PROFILE
 if [ -n "$AWS_CLOUDFRONT_DISTRIBUTION_ID" ]; then
   echo "Invalidating CloudFront cache for distribution: $AWS_CLOUDFRONT_DISTRIBUTION_ID"
   aws cloudfront create-invalidation --distribution-id $AWS_CLOUDFRONT_DISTRIBUTION_ID --paths "/*" --profile $AWS_PROFILE
+  
+  # Wait for invalidation to complete
+  echo "Waiting for CloudFront invalidation to complete..."
+  sleep 30
 else
   echo "Skipping CloudFront invalidation (AWS_CLOUDFRONT_DISTRIBUTION_ID not set)"
 fi
