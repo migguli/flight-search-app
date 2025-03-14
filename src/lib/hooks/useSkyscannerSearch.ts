@@ -1,4 +1,6 @@
-import { useState } from 'react';
+'use client';
+
+import { useState, useEffect } from 'react';
 import { SkyscannerService } from '../api/skyscannerService';
 import { transformSkyscannerResponse } from '../utils/skyscannerUtils';
 import type { Flight, FlightSearchParams } from '../types/flight';

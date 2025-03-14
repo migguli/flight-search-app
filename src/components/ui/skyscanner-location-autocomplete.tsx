@@ -104,6 +104,15 @@ export function SkyscannerLocationAutocomplete({
     }, 300)
   }
 
+  // Clean up the timeout when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [])
+
   const handleSelect = (currentValue: string) => {
     const selectedOption = options.find(option => option.value === currentValue)
     

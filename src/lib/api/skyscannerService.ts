@@ -1,3 +1,5 @@
+'use client';
+
 import { API_BASE_URL, DEFAULT_HEADERS, handleApiResponse } from './config';
 import type { Flight, FlightSearchParams, FlightSearchResponse } from '../types/flight';
 
@@ -17,24 +19,10 @@ export class SkyscannerService {
    */
   static async searchFlights(params: FlightSearchParams): Promise<FlightSearchResponse> {
     try {
-      // In a real implementation, we would call the Skyscanner API
-      // For now, we'll use mock data from the FlightService
+      // For now, use mock data from the FlightService
       // This allows for easy transition when the API key is ready
-      
-      // Replace this with actual API call when ready:
-      // const response = await fetch(`${API_BASE_URL}${ENDPOINTS.FLIGHTS_SEARCH}`, {
-      //   method: 'POST',
-      //   headers: {
-      //     ...DEFAULT_HEADERS,
-      //     'x-api-key': 'YOUR_API_KEY_HERE', // Replace with actual API key when implementing
-      //   },
-      //   body: JSON.stringify(params),
-      // });
-      // return handleApiResponse(response);
-      
-      // For now, import and use FlightService mock data
       const { FlightService } = await import('./flightService');
-      return FlightService.searchFlights(params);
+      return await FlightService.searchFlights(params);
     } catch (error) {
       console.error('Error searching flights:', error);
       throw error;
@@ -46,14 +34,13 @@ export class SkyscannerService {
    */
   static async getLivePrices(sessionToken: string): Promise<any> {
     try {
-      const response = await fetch(`${API_BASE_URL}${ENDPOINTS.FLIGHTS_LIVE_PRICES}/${sessionToken}`, {
-        method: 'GET',
-        headers: {
-          ...DEFAULT_HEADERS,
-          'x-api-key': 'YOUR_API_KEY_HERE', // Replace with actual API key when implementing
-        },
-      });
-      return handleApiResponse(response);
+      // Mock implementation for now
+      return {
+        success: true,
+        data: {
+          prices: []
+        }
+      };
     } catch (error) {
       console.error('Error getting live prices:', error);
       throw error;
@@ -65,14 +52,22 @@ export class SkyscannerService {
    */
   static async autocompletePlaces(query: string): Promise<any> {
     try {
-      const response = await fetch(`${API_BASE_URL}${ENDPOINTS.AUTOCOMPLETE_PLACES}?query=${encodeURIComponent(query)}`, {
-        method: 'GET',
-        headers: {
-          ...DEFAULT_HEADERS,
-          'x-api-key': 'YOUR_API_KEY_HERE', // Replace with actual API key when implementing
-        },
-      });
-      return handleApiResponse(response);
+      // Mock implementation for now
+      return {
+        places: [
+          {
+            entityId: 'SKY_123',
+            name: query + ' International Airport',
+            iata: query.substring(0, 3).toUpperCase(),
+            type: 'AIRPORT'
+          },
+          {
+            entityId: 'SKY_456',
+            name: query + ' City',
+            type: 'CITY'
+          }
+        ]
+      };
     } catch (error) {
       console.error('Error autocompleting places:', error);
       throw error;
