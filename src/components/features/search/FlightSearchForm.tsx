@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -32,8 +32,10 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Card } from '@/components/ui/card'
-import { CityAutocomplete } from '@/components/ui/city-autocomplete'
+import { SkyscannerLocationAutocomplete, LocationOption } from '@/components/ui/skyscanner-location-autocomplete'
+import { useSkyscannerSearch } from '@/lib/hooks/useSkyscannerSearch'
 import { config } from '@/lib/config'
+import { cn } from '@/lib/utils'
 
 // Import the Google Maps types
 // This is referencing the types we defined in places-autocomplete.tsx
@@ -73,8 +75,9 @@ interface FlightSearchFormProps {
 
 export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) => {
   const [isRoundTrip, setIsRoundTrip] = useState(true)
-  const [originCity, setOriginCity] = useState<{ country: string; capital: string } | null>(null);
-  const [destinationCity, setDestinationCity] = useState<{ country: string; capital: string } | null>(null);
+  const [originLocation, setOriginLocation] = useState<LocationOption | null>(null);
+  const [destinationLocation, setDestinationLocation] = useState<LocationOption | null>(null);
+  const { searchPlaces } = useSkyscannerSearch();
 
   const defaultValues = {
     origin: 'Helsinki',
@@ -89,57 +92,70 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
   })
 
   // Initialize form with default values
-  React.useEffect(() => {
+  useEffect(() => {
     form.reset(defaultValues)
   }, [])
 
-  // Handle city selection and ensure form values are synchronized
-  const handleOriginCitySelect = (city: { country: string; capital: string }) => {
-    setOriginCity(city);
-    // Ensure form value matches the selected city
-    form.setValue('origin', city.capital, { shouldValidate: true });
-  };
+  // Handle location selection and ensure form values are synchronized
+  const handleOriginLocationSelect = (location: LocationOption) => {
+    setOriginLocation(location);
+    // Ensure form value matches the selected location
+    form.setValue('origin', location.label, { shouldValidate: true });
+  }
 
-  const handleDestinationCitySelect = (city: { country: string; capital: string }) => {
-    setDestinationCity(city);
-    // Ensure form value matches the selected city
-    form.setValue('destination', city.capital, { shouldValidate: true });
-  };
+  const handleDestinationLocationSelect = (location: LocationOption) => {
+    setDestinationLocation(location);
+    // Ensure form value matches the selected location
+    form.setValue('destination', location.label, { shouldValidate: true });
+  }
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Enhance the search data with city details if available
-    const searchData = {
-      ...values,
-      // Add country information if available
-      originCountry: originCity?.country,
-      destinationCountry: destinationCity?.country,
-    };
-    
-    onSearch(values);
-    
-    // Log enhanced data for debugging
-    console.log('Enhanced search data:', searchData);
+  // Clear/reset the form
+  const handleResetForm = () => {
+    form.reset()
+    setOriginLocation(null)
+    setDestinationLocation(null)
+  }
+
+  // Submit the form and call the onSearch callback
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const searchParams: FlightSearchParams = {
+      origin: values.origin,
+      destination: values.destination,
+      departureDate: values.departureDate,
+      returnDate: isRoundTrip ? values.returnDate : undefined
+    }
+    onSearch(searchParams)
   }
 
   return (
-    <Card className="p-6">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="flex gap-4 mb-6">
-            <Button
-              type="button"
-              variant={!isRoundTrip ? "default" : "outline"}
-              onClick={() => setIsRoundTrip(false)}
-            >
-              One Way
-            </Button>
-            <Button
-              type="button"
-              variant={isRoundTrip ? "default" : "outline"}
-              onClick={() => setIsRoundTrip(true)}
-            >
-              Round Trip
-            </Button>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Card className="p-6">
+          <div className="mb-6">
+            <div className="flex space-x-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="round-trip"
+                  name="trip-type"
+                  className="h-4 w-4 text-blue-600"
+                  checked={isRoundTrip}
+                  onChange={() => setIsRoundTrip(true)}
+                />
+                <Label htmlFor="round-trip">Round Trip</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="one-way"
+                  name="trip-type"
+                  className="h-4 w-4 text-blue-600"
+                  checked={!isRoundTrip}
+                  onChange={() => setIsRoundTrip(false)}
+                />
+                <Label htmlFor="one-way">One Way</Label>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -147,21 +163,14 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
               control={form.control}
               name="origin"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Origin</FormLabel>
                   <FormControl>
-                    <Controller
-                      name="origin"
-                      control={form.control}
-                      render={({ field: { onChange, value, ...rest } }) => (
-                        <CityAutocomplete
-                          placeholder="From where?"
-                          value={value}
-                          onChange={(newValue) => onChange(newValue)}
-                          onCitySelect={handleOriginCitySelect}
-                          {...rest}
-                        />
-                      )}
+                    <SkyscannerLocationAutocomplete
+                      placeholder="Search for airports or cities..."
+                      onSearch={searchPlaces}
+                      onSelect={handleOriginLocationSelect}
+                      value={originLocation?.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -173,21 +182,14 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
               control={form.control}
               name="destination"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Destination</FormLabel>
                   <FormControl>
-                    <Controller
-                      name="destination"
-                      control={form.control}
-                      render={({ field: { onChange, value, ...rest } }) => (
-                        <CityAutocomplete
-                          placeholder="Where to?"
-                          value={value}
-                          onChange={(newValue) => onChange(newValue)}
-                          onCitySelect={handleDestinationCitySelect}
-                          {...rest}
-                        />
-                      )}
+                    <SkyscannerLocationAutocomplete
+                      placeholder="Search for airports or cities..."
+                      onSearch={searchPlaces}
+                      onSelect={handleDestinationLocationSelect}
+                      value={destinationLocation?.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -196,7 +198,7 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <FormField
               control={form.control}
               name="departureDate"
@@ -207,10 +209,17 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          variant="outline"
-                          className={`w-full pl-3 text-left font-normal`}
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
                         >
-                          {format(field.value || new Date(), "PPP")}
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
@@ -221,7 +230,7 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
                         selected={field.value}
                         onSelect={field.onChange}
                         disabled={(date) =>
-                          date < new Date()
+                          date < new Date(new Date().setHours(0, 0, 0, 0))
                         }
                         initialFocus
                       />
@@ -243,10 +252,17 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant="outline"
-                            className={`w-full pl-3 text-left font-normal`}
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
                           >
-                            {format(field.value || new Date(), "PPP")}
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
@@ -254,11 +270,12 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value}
+                          selected={field.value || undefined}
                           onSelect={field.onChange}
-                          disabled={(date) =>
-                            date < (form.getValues("departureDate") || new Date())
-                          }
+                          disabled={(date) => {
+                            const departureDate = form.getValues("departureDate")
+                            return date < departureDate
+                          }}
                           initialFocus
                         />
                       </PopoverContent>
@@ -270,11 +287,21 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
             )}
           </div>
 
-          <Button type="submit" size="lg" className="w-full">
-            Search Flights
-          </Button>
-        </form>
-      </Form>
-    </Card>
-  );
-}; 
+          <div className="flex justify-between mt-8">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleResetForm}
+              className="w-28"
+            >
+              Reset
+            </Button>
+            <Button type="submit" className="w-28">
+              Search
+            </Button>
+          </div>
+        </Card>
+      </form>
+    </Form>
+  )
+} 

@@ -3,27 +3,26 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FlightSearchForm, FlightSearchParams as FormSearchParams } from '@/components/features/search/FlightSearchForm';
-import { FlightSearchResults, Flight, transformAPIFlight } from '@/components/features/FlightSearchResults';
+import { FlightSearchResults, Flight as UIFlight, transformAPIFlight } from '@/components/features/FlightSearchResults';
 import { AccommodationResults } from '@/components/features/AccommodationResults';
-import { FlightService } from '@/lib/api/flightService';
 import { AccommodationService } from '@/lib/api/accommodationService';
 import { ApiError } from '@/lib/api/config';
-import type { FlightSearchParams } from '@/lib/types/flight';
+import { useSkyscannerSearch } from '@/lib/hooks/useSkyscannerSearch';
+import type { Flight as APIFlight, FlightSearchParams } from '@/lib/types/flight';
 import type { Accommodation } from '@/lib/types/accommodation';
 import Image from 'next/image';
 
 export default function Home() {
   const router = useRouter();
-  const [searchResults, setSearchResults] = useState<Flight[]>([]);
+  const { searchFlights, flights, isLoading: isLoadingFlights, error: flightError } = useSkyscannerSearch();
+  const [searchResults, setSearchResults] = useState<UIFlight[]>([]);
   const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isLoadingAccommodations, setIsLoadingAccommodations] = useState(false);
-  const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
+  const [selectedFlight, setSelectedFlight] = useState<UIFlight | null>(null);
   const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async (formParams: FormSearchParams) => {
-    setIsLoading(true);
     setError(null);
     setAccommodations([]);
     setSelectedFlight(null);
@@ -40,9 +39,11 @@ export default function Home() {
         cabinClass: 'economy' // Default to economy
       };
 
-      const response = await FlightService.searchFlights(searchParams);
+      // Use our Skyscanner search hook
+      const flightResults = await searchFlights(searchParams);
+      
       // Transform API flights to UI flights
-      const transformedFlights = response.flights.map(transformAPIFlight);
+      const transformedFlights = flightResults.map((flight: APIFlight) => transformAPIFlight(flight));
       setSearchResults(transformedFlights);
       
       // Immediately fetch accommodations when flights are found
@@ -78,12 +79,10 @@ export default function Home() {
         setError('An unexpected error occurred while searching for flights');
       }
       setSearchResults([]);
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const handleFlightSelect = async (flight: Flight) => {
+  const handleFlightSelect = async (flight: UIFlight) => {
     setSelectedFlight(flight);
     
     // We still want to update accommodations based on the selected flight
@@ -91,11 +90,14 @@ export default function Home() {
     setError(null);
 
     try {
+      // Use the destination from the selected flight
+      const destinationCity = flight.destination;
+
       // Search for accommodations in the destination city based on the selected flight
       const accommodationResponse = await AccommodationService.searchAccommodations({
-        city: flight.destination,
-        checkIn: flight.departureTime,
-        checkOut: flight.arrivalTime,
+        city: destinationCity,
+        checkIn: new Date().toISOString(),
+        checkOut: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         guests: 2 // Default to 2 guests
       });
 
@@ -134,6 +136,20 @@ export default function Home() {
     { id: 4, name: 'Sydney', image: '/images/sydney.jpg', code: 'SYD' },
   ];
 
+  // Function to search for a popular destination
+  const searchPopularDestination = (destination: { name: string, code: string }) => {
+    // Create a search for flights to the selected destination
+    handleSearch({
+      origin: 'Helsinki', // Default origin
+      destination: destination.name,
+      departureDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+      returnDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000), // 21 days from now
+    });
+    
+    // Smoothly scroll to the search results
+    document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <main className="min-h-screen">
       {/* Hero Section */}
@@ -153,106 +169,90 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
-      <div className="container mx-auto px-4 py-12">
-        {error && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 max-w-4xl mx-auto">
-            {error}
-          </div>
-        )}
-        
-        {/* Search Results Section */}
-        {(searchResults.length > 0 || isLoading) && (
-          <div className="mt-8 max-w-4xl mx-auto">
-            <h2 className="text-2xl font-semibold mb-6">Available Flights</h2>
-            <FlightSearchResults
-              flights={searchResults}
-              isLoading={isLoading}
-              onSelect={handleFlightSelect}
-            />
-          </div>
-        )}
 
-        {/* Accommodations Section */}
-        {(accommodations.length > 0 || isLoadingAccommodations) && (
-          <div className="mt-12 max-w-4xl mx-auto">
-            <h2 className="text-2xl font-semibold mb-6">
-              Available Accommodations 
-              {selectedFlight 
-                ? ` in ${selectedFlight.destination}` 
-                : searchResults.length > 0 && searchResults[0].destination 
-                  ? ` in ${searchResults[0].destination}` 
-                  : ''}
-            </h2>
-            <AccommodationResults
-              accommodations={accommodations}
-              isLoading={isLoadingAccommodations}
-              onSelect={handleAccommodationSelect}
-            />
-          </div>
-        )}
-        
-        {/* Travel Inspiration Section - Only show when no search results */}
-        {searchResults.length === 0 && !isLoading && (
-          <section className="mt-16">
-            <h2 className="text-3xl font-bold text-center mb-10">Popular Destinations</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {popularDestinations.map((destination) => (
-                <div 
-                  key={destination.id}
-                  className="rounded-xl overflow-hidden shadow-md card-hover"
-                  onClick={() => {
-                    // You could pre-fill the search form with this destination
-                    console.log(`Selected destination: ${destination.code}`);
-                  }}
-                >
-                  <div className="relative h-48">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
-                    <div className="absolute bottom-4 left-4 text-white z-20">
-                      <h3 className="text-xl font-bold">{destination.name}</h3>
-                      <p className="text-sm text-white/80">Explore flights</p>
-                    </div>
-                    <div className="w-full h-full bg-primary-100 flex items-center justify-center">
-                      <span className="text-3xl">✈️</span>
+      {/* Flight Search Results */}
+      <section id="search-results" className="py-12 bg-gray-50">
+        <div className="container mx-auto px-4">
+          {error && (
+            <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
+              <p>{error}</p>
+            </div>
+          )}
+          
+          {flightError && (
+            <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
+              <p>{flightError}</p>
+            </div>
+          )}
+
+          {isLoadingFlights ? (
+            <div className="text-center py-12">
+              <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-lg">Searching for the best flights...</p>
+            </div>
+          ) : searchResults.length > 0 ? (
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="md:col-span-2">
+                <h2 className="text-2xl font-bold mb-6">Flight Results</h2>
+                <FlightSearchResults 
+                  flights={searchResults} 
+                  onSelect={handleFlightSelect} 
+                  isLoading={false}
+                />
+              </div>
+              
+              <div>
+                <h2 className="text-2xl font-bold mb-6">Accommodations</h2>
+                {isLoadingAccommodations ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p>Finding accommodations...</p>
+                  </div>
+                ) : accommodations.length > 0 ? (
+                  <AccommodationResults
+                    accommodations={accommodations}
+                    onSelect={handleAccommodationSelect}
+                    isLoading={false}
+                  />
+                ) : (
+                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <p className="text-center text-gray-500">
+                      No accommodations found for this destination.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <h2 className="text-2xl font-bold mb-6">Popular Destinations</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {popularDestinations.map(destination => (
+                  <div 
+                    key={destination.id} 
+                    className="relative overflow-hidden rounded-xl card-hover cursor-pointer"
+                    onClick={() => searchPopularDestination(destination)}
+                  >
+                    <div className="aspect-w-16 aspect-h-9 relative">
+                      <Image
+                        src={destination.image}
+                        alt={destination.name}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                      <div className="absolute bottom-0 left-0 p-4 text-white">
+                        <h3 className="text-xl font-bold">{destination.name}</h3>
+                        <p className="text-sm opacity-90">Flights from €199</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-        
-        {/* Features Section */}
-        {searchResults.length === 0 && !isLoading && (
-          <section className="mt-20 mb-16">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="p-6 rounded-xl bg-gradient-to-br from-primary-50 to-white shadow-sm border border-primary-100 card-hover">
-                <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center mb-4 text-white">
-                  🔍
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Easy Search</h3>
-                <p className="text-neutral-600">Find the perfect flight with our powerful search engine</p>
-              </div>
-              
-              <div className="p-6 rounded-xl bg-gradient-to-br from-accent-50 to-white shadow-sm border border-accent-100 card-hover">
-                <div className="w-12 h-12 bg-accent-500 rounded-full flex items-center justify-center mb-4 text-white">
-                  💰
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Best Prices</h3>
-                <p className="text-neutral-600">Compare prices across major airlines and booking sites</p>
-              </div>
-              
-              <div className="p-6 rounded-xl bg-gradient-to-br from-primary-50 to-white shadow-sm border border-primary-100 card-hover">
-                <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center mb-4 text-white">
-                  🏨
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Complete Package</h3>
-                <p className="text-neutral-600">Book your flight and accommodations in one place</p>
+                ))}
               </div>
             </div>
-          </section>
-        )}
-      </div>
+          )}
+        </div>
+      </section>
     </main>
   );
 }
