@@ -79,7 +79,7 @@ export const FlightFilters: React.FC<FlightFiltersProps> = ({
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="0">Direct</SelectItem>
               <SelectItem value="1">1 Stop</SelectItem>
-              <SelectItem value="2+">2+ Stops</SelectItem>
+              <SelectItem value="2">2+ Stops</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -95,7 +95,7 @@ export const FlightFilters: React.FC<FlightFiltersProps> = ({
               <SelectValue placeholder="Select airline" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Airlines</SelectItem>
+              <SelectItem value="all">All Airlines</SelectItem>
               {airlines.map((airline) => (
                 <SelectItem key={airline} value={airline}>
                   {airline}
