@@ -1,9 +1,14 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Label } from '../ui/label';
-import { Input } from '../ui/input';
-import { Slider } from '../ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Slider } from '@radix-ui/react-slider';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 
 interface FilterState {
   priceRange: [number, number];
@@ -39,31 +44,29 @@ export const FlightFilters: React.FC<FlightFiltersProps> = ({
   };
 
   return (
-    <Card className="mb-4">
+    <Card>
       <CardHeader>
         <CardTitle>Filters</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Price Range Filter */}
-        <div>
+        <div className="space-y-2">
           <Label>Price Range</Label>
-          <div className="mt-2">
-            <Slider
-              defaultValue={[minPrice, maxPrice]}
-              min={minPrice}
-              max={maxPrice}
-              step={10}
-              onValueChange={(value: number[]) => handleFilterChange('priceRange', value as [number, number])}
-            />
-            <div className="flex justify-between mt-2 text-sm text-gray-600">
-              <span>${filters.priceRange[0]}</span>
-              <span>${filters.priceRange[1]}</span>
-            </div>
+          <Slider
+            defaultValue={[minPrice, maxPrice]}
+            min={minPrice}
+            max={maxPrice}
+            step={10}
+            onValueChange={(value: number[]) => handleFilterChange('priceRange', value as [number, number])}
+          />
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>${filters.priceRange[0]}</span>
+            <span>${filters.priceRange[1]}</span>
           </div>
         </div>
 
         {/* Stops Filter */}
-        <div>
+        <div className="space-y-2">
           <Label>Stops</Label>
           <Select
             value={filters.stops}
@@ -82,7 +85,7 @@ export const FlightFilters: React.FC<FlightFiltersProps> = ({
         </div>
 
         {/* Airlines Filter */}
-        <div>
+        <div className="space-y-2">
           <Label>Airlines</Label>
           <Select
             value={filters.airlines[0] || ''}
@@ -103,7 +106,7 @@ export const FlightFilters: React.FC<FlightFiltersProps> = ({
         </div>
 
         {/* Departure Time Filter */}
-        <div>
+        <div className="space-y-2">
           <Label>Departure Time</Label>
           <Select
             value={filters.departureTime}
