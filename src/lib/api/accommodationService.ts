@@ -211,4 +211,39 @@ export class AccommodationService {
       throw new Error('An unexpected error occurred while fetching accommodation details');
     }
   }
+
+  static async getAccommodationById(id: string): Promise<Accommodation> {
+    try {
+      // Check if we're using the example API URL
+      if (API_BASE_URL.includes('example')) {
+        console.warn('Using mock data as API_BASE_URL is not configured');
+        return this.getMockAccommodationById(id);
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/accommodations/${id}`,
+        {
+          method: 'GET',
+          headers: DEFAULT_HEADERS,
+        }
+      );
+
+      return handleApiResponse(response);
+    } catch (error) {
+      console.warn('API call failed, falling back to mock data:', error);
+      return this.getMockAccommodationById(id);
+    }
+  }
+
+  private static getMockAccommodationById(id: string): Accommodation {
+    // Generate mock accommodations and find the one with matching ID
+    const allMockAccommodations = generateMockAccommodations({});
+    const accommodation = allMockAccommodations.find(acc => acc.id === id);
+    
+    if (!accommodation) {
+      throw new Error(`Accommodation with ID ${id} not found`);
+    }
+    
+    return accommodation;
+  }
 } 
