@@ -133,9 +133,6 @@ interface FlightResult {
    # Start development server
    npm run dev
 
-   # Run tests
-   npm test
-
    # Build for production
    npm run build
    ```
@@ -144,12 +141,9 @@ interface FlightResult {
    - ESLint for code linting
    - Prettier for code formatting
    - Husky for pre-commit hooks
-   - Jest for unit testing
-   - Cypress for E2E testing
 
 3. **Deployment**
    - CI/CD pipeline with GitHub Actions
-   - Automated testing before deployment
    - Vercel for frontend deployment
    - PostgreSQL database
 

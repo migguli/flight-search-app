@@ -55,7 +55,6 @@ The Flight Search Tool is designed to provide Airbnb users with an integrated ex
 ## 6. Testing & Optimization
 - **User Experience Surveys:** Utilize online questionnaires, site intercepts, and in-person testing to gather feedback.
 - **Performance Metrics:** Monitor load times, error rates, and user satisfaction.
-- **Iterative Design:** Incorporate feedback and run regular UX tests to continually refine the interface.
 
 ## 7. Deployment & Maintenance
 - **Data Updates:** Establish a process for regularly updating the mock data, with an easy migration path to live data.
