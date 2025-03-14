@@ -50,6 +50,7 @@ export function SkyscannerLocationAutocomplete({
   const [selectedValue, setSelectedValue] = useState(value || "")
   const [loading, setLoading] = useState(false)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [displayValue, setDisplayValue] = useState("")
 
   // Update internal state when external value prop changes
   useEffect(() => {
@@ -76,6 +77,11 @@ export function SkyscannerLocationAutocomplete({
       }))
       
       setOptions(mappedOptions)
+      
+      // Automatically open the dropdown when we have results
+      if (mappedOptions.length > 0 && !open) {
+        setOpen(true)
+      }
     } catch (error) {
       console.error("Error searching locations:", error)
       setOptions([])
@@ -86,6 +92,7 @@ export function SkyscannerLocationAutocomplete({
 
   const handleInputChange = (value: string) => {
     setQuery(value)
+    setDisplayValue(value)
     
     // Debounce the search to avoid excessive API calls
     if (debounceTimerRef.current) {
@@ -102,6 +109,7 @@ export function SkyscannerLocationAutocomplete({
     
     if (selectedOption) {
       setSelectedValue(currentValue)
+      setDisplayValue(selectedOption.label)
       onSelect(selectedOption)
       setOpen(false)
     }
@@ -116,10 +124,11 @@ export function SkyscannerLocationAutocomplete({
           aria-expanded={open}
           className={cn("w-full justify-between", className)}
           disabled={disabled}
+          onClick={() => setOpen(true)}
         >
-          {selectedValue
-            ? options.find((option) => option.value === selectedValue)?.label || selectedValue
-            : placeholder}
+          {selectedValue && options.find((option) => option.value === selectedValue)
+            ? options.find((option) => option.value === selectedValue)?.label
+            : displayValue || placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -130,6 +139,7 @@ export function SkyscannerLocationAutocomplete({
             value={query}
             onValueChange={handleInputChange}
             className="h-9"
+            autoFocus
           />
           {loading && (
             <div className="py-6 text-center text-sm">
