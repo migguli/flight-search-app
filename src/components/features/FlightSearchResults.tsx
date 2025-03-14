@@ -2,9 +2,10 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
+import type { Flight as APIFlight } from '@/lib/types/flight';
 
-export interface Flight {
-  id: string;
+// Extended flight type that includes UI-specific fields
+export interface Flight extends Omit<APIFlight, 'segments' | 'price' | 'totalDuration'> {
   airline: string;
   flightNumber: string;
   departureTime: string;
@@ -16,11 +17,31 @@ export interface Flight {
   stops: number;
 }
 
+// Helper function to transform API flight to UI flight
+export const transformAPIFlight = (apiFlight: APIFlight): Flight => {
+  const firstSegment = apiFlight.segments[0];
+  const lastSegment = apiFlight.segments[apiFlight.segments.length - 1];
+
+  return {
+    id: apiFlight.id,
+    airline: firstSegment.airline.name,
+    flightNumber: firstSegment.flightNumber,
+    departureTime: firstSegment.departureTime,
+    arrivalTime: lastSegment.arrivalTime,
+    origin: firstSegment.departureAirport.code,
+    destination: lastSegment.arrivalAirport.code,
+    price: apiFlight.price.amount,
+    duration: apiFlight.totalDuration,
+    stops: apiFlight.stops,
+  };
+};
+
 interface FlightSearchResultsProps {
   flights: Flight[];
   isLoading?: boolean;
   onFilterChange?: (filters: any) => void;
   onSortChange?: (sortBy: string) => void;
+  onSelect?: (flight: Flight) => void;
 }
 
 export const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
@@ -28,6 +49,7 @@ export const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
   isLoading = false,
   onFilterChange,
   onSortChange,
+  onSelect,
 }) => {
   if (isLoading) {
     return (
@@ -64,7 +86,13 @@ export const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold">${flight.price}</p>
-                <Button className="mt-2">Select</Button>
+                <Button 
+                  className="mt-2" 
+                  onClick={() => onSelect?.(flight)}
+                  aria-label={`Select flight ${flight.flightNumber} from ${flight.origin} to ${flight.destination}`}
+                >
+                  Select
+                </Button>
               </div>
             </div>
             

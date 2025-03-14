@@ -1,67 +1,55 @@
 'use client';
 
 import { useState } from 'react';
-import { FlightSearchForm, FlightSearchParams } from '@/components/features/search/FlightSearchForm';
-import { FlightSearchResults, Flight } from '@/components/features/FlightSearchResults';
-import { FlightFilters } from '@/components/features/FlightFilters';
+import { FlightSearchForm, FlightSearchParams as FormSearchParams } from '@/components/features/search/FlightSearchForm';
+import { FlightSearchResults, Flight, transformAPIFlight } from '@/components/features/FlightSearchResults';
 import { TodoList } from '@/components/features/todo/TodoList';
+import { FlightService } from '@/lib/api/flightService';
+import { ApiError } from '@/lib/api/config';
+import type { FlightSearchParams } from '@/lib/types/flight';
 
 export default function Home() {
   const [searchResults, setSearchResults] = useState<Flight[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(1000);
-  const [airlines, setAirlines] = useState<string[]>([]);
+  const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = async (searchParams: FlightSearchParams) => {
+  const handleSearch = async (formParams: FormSearchParams) => {
     setIsLoading(true);
+    setError(null);
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
-      const mockResults: Flight[] = [
-        {
-          id: '1',
-          airline: 'Finnair',
-          flightNumber: 'AY123',
-          departureTime: '10:00 AM',
-          arrivalTime: '2:00 PM',
-          origin: searchParams.origin,
-          destination: searchParams.destination,
-          price: 299,
-          duration: '4h 00m',
-          stops: 0,
-        },
-        {
-          id: '2',
-          airline: 'Norwegian',
-          flightNumber: 'DY456',
-          departureTime: '2:30 PM',
-          arrivalTime: '7:45 PM',
-          origin: searchParams.origin,
-          destination: searchParams.destination,
-          price: 199,
-          duration: '5h 15m',
-          stops: 1,
-        },
-      ];
-      setSearchResults(mockResults);
-      
-      // Update filter values based on results
-      const prices = mockResults.map(flight => flight.price);
-      setMinPrice(Math.min(...prices));
-      setMaxPrice(Math.max(...prices));
-      setAirlines([...new Set(mockResults.map(flight => flight.airline))]);
+      // Transform form params to API params
+      const searchParams: FlightSearchParams = {
+        origin: formParams.origin,
+        destination: formParams.destination,
+        departureDate: formParams.departureDate.toISOString(),
+        returnDate: formParams.returnDate?.toISOString(),
+        passengers: 1, // Default to 1 passenger
+        cabinClass: 'economy' // Default to economy
+      };
+
+      const response = await FlightService.searchFlights(searchParams);
+      // Transform API flights to UI flights
+      const transformedFlights = response.flights.map(transformAPIFlight);
+      setSearchResults(transformedFlights);
     } catch (error) {
       console.error('Error fetching flights:', error);
-      // TODO: Handle error state
+      if (error instanceof ApiError) {
+        setError(error.message);
+      } else {
+        setError('An unexpected error occurred while searching for flights');
+      }
+      setSearchResults([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleFilterChange = (filters: any) => {
-    // TODO: Implement filtering logic
-    console.log('Filter changed:', filters);
+  const handleFlightSelect = (flight: Flight) => {
+    setSelectedFlight(flight);
+    // TODO: Implement booking flow or navigation to booking page
+    console.log('Selected flight:', flight);
+    alert(`Flight ${flight.flightNumber} selected! This will be connected to the booking flow.`);
   };
 
   return (
@@ -71,22 +59,19 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <FlightSearchForm onSearch={handleSearch} />
           
+          {error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
+              {error}
+            </div>
+          )}
+          
           {(searchResults.length > 0 || isLoading) && (
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="md:col-span-1">
-                <FlightFilters
-                  onFilterChange={handleFilterChange}
-                  minPrice={minPrice}
-                  maxPrice={maxPrice}
-                  airlines={airlines}
-                />
-              </div>
-              <div className="md:col-span-3">
-                <FlightSearchResults
-                  flights={searchResults}
-                  isLoading={isLoading}
-                />
-              </div>
+            <div className="mt-8">
+              <FlightSearchResults
+                flights={searchResults}
+                isLoading={isLoading}
+                onSelect={handleFlightSelect}
+              />
             </div>
           )}
 

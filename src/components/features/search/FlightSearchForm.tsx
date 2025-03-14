@@ -41,8 +41,6 @@ const formSchema = z.object({
     required_error: 'Departure date is required',
   }),
   returnDate: z.date().optional(),
-  passengers: z.string().min(1, 'Number of passengers is required'),
-  class: z.string().min(1, 'Class is required'),
 })
 
 export interface FlightSearchParams {
@@ -50,8 +48,6 @@ export interface FlightSearchParams {
   destination: string;
   departureDate: Date;
   returnDate?: Date;
-  passengers: string;
-  class: string;
 }
 
 interface FlightSearchFormProps {
@@ -64,8 +60,6 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
   const defaultValues = {
     origin: 'Helsinki',
     destination: 'London',
-    passengers: '2',
-    class: 'economy',
     departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
     returnDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
   }
@@ -207,61 +201,6 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
                 )}
               />
             )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="passengers"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Passengers</FormLabel>
-                  <Select onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue defaultValue={field.value}>
-                          {field.value} {parseInt(field.value) === 1 ? 'Passenger' : 'Passengers'}
-                        </SelectValue>
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-                        <SelectItem key={num} value={num.toString()}>
-                          {num} {num === 1 ? 'Passenger' : 'Passengers'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="class"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Class</FormLabel>
-                  <Select onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue defaultValue={field.value}>
-                          {field.value.charAt(0).toUpperCase() + field.value.slice(1)}
-                        </SelectValue>
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="economy">Economy</SelectItem>
-                      <SelectItem value="premium">Premium Economy</SelectItem>
-                      <SelectItem value="business">Business</SelectItem>
-                      <SelectItem value="first">First Class</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
 
           <Button type="submit" className="w-full">Search Flights</Button>
