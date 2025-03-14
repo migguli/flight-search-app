@@ -1,14 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { clashDisplay } from "./fonts";
+import { inter, systemFont } from "./fonts";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import "../styles/globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+import "../styles/fonts.css";
 
 export const metadata: Metadata = {
   title: "Flight Search App",
@@ -21,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${clashDisplay.variable}`}>
+    <html lang="en" className={inter.className}>
       <body className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-grow">{children}</main>

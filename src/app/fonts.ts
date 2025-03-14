@@ -1,28 +1,14 @@
-import localFont from 'next/font/local'
+import { Inter } from "next/font/google"
 
-export const clashDisplay = localFont({
-  src: [
-    {
-      path: '../fonts/ClashDisplay-Regular.woff2',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../fonts/ClashDisplay-Medium.woff2',
-      weight: '500',
-      style: 'normal',
-    },
-    {
-      path: '../fonts/ClashDisplay-Semibold.woff2',
-      weight: '600',
-      style: 'normal',
-    },
-    {
-      path: '../fonts/ClashDisplay-Bold.woff2',
-      weight: '700',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-clash-display',
-  display: 'swap',
-}) 
+export const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+})
+
+// Temporary system font fallback until Clash Display is properly licensed
+export const systemFont = {
+  style: {
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  },
+  variable: "--font-clash-display" as const,
+} 
