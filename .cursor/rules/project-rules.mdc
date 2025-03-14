@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+[specifications.md](mdc:specifications.md)
+[README.md](mdc:flight-search-app/README.md)
+[schema.prisma](mdc:flight-search-app/prisma/schema.prisma)
