@@ -13,23 +13,8 @@ A modern web application that helps Airbnb users find the cheapest flights to de
 - **Form Handling**: React Hook Form with Zod validation
 - **Maps**: Mapbox GL JS for interactive map visualization
 - **Date Handling**: date-fns for date manipulation and formatting
-- **Database**: Prisma with PostgreSQL
 - **Authentication**: NextAuth.js with Supabase Auth
 - **API Client**: tRPC for type-safe API calls
-
-### Database Schema
-
-The database schema is defined in `prisma/schema.prisma` using Prisma's schema language. Key models include:
-
-- **User**: Stores user information and preferences
-- **FlightSearch**: Records flight search queries and results
-- **SavedFlight**: Stores user's saved flights
-
-For detailed schema information, see `prisma/schema.prisma`.
-
-### Row Level Security
-
-Row Level Security is implemented at the application level using tRPC middleware and Prisma queries. Each query is scoped to the authenticated user's data.
 
 ### API Integration
 
@@ -101,7 +86,6 @@ interface FlightResult {
 }
 ```
 
-
 ### Security Measures
 
 - Type-safe API with tRPC
@@ -124,12 +108,6 @@ interface FlightResult {
    # Set up environment variables
    cp .env.example .env.local
 
-   # Generate Prisma client
-   npx prisma generate
-
-   # Run database migrations
-   npx prisma migrate dev
-
    # Start development server
    npm run dev
 
@@ -145,7 +123,6 @@ interface FlightResult {
 3. **Deployment**
    - CI/CD pipeline with GitHub Actions
    - Vercel for frontend deployment
-   - PostgreSQL database
 
 ### Monitoring & Logging
 
