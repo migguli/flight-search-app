@@ -78,9 +78,17 @@ export default function ApartmentDetails() {
         return;
       }
 
+      // Log the params for debugging
+      console.log('Apartment params:', params);
+      
       try {
+        // Clean the ID in case it contains Next.js route parameter syntax
+        const apartmentId = Array.isArray(params.id) ? params.id[0] : params.id;
+        console.log('Fetching apartment with ID:', apartmentId);
+        
         // In a real app, fetch the actual data from the API
-        const response = await AccommodationService.getAccommodationById(params.id as string);
+        const response = await AccommodationService.getAccommodationById(apartmentId);
+        console.log('Apartment data received:', response);
         setApartment(response);
       } catch (error) {
         console.error('Error fetching apartment:', error);

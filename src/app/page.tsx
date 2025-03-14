@@ -43,6 +43,32 @@ export default function Home() {
       // Transform API flights to UI flights
       const transformedFlights = response.flights.map(transformAPIFlight);
       setSearchResults(transformedFlights);
+      
+      // Immediately fetch accommodations when flights are found
+      if (transformedFlights.length > 0) {
+        setIsLoadingAccommodations(true);
+        try {
+          // Search for accommodations in the destination city
+          const accommodationResponse = await AccommodationService.searchAccommodations({
+            city: formParams.destination,
+            checkIn: formParams.departureDate.toISOString(),
+            checkOut: formParams.returnDate?.toISOString() || '',
+            guests: 2 // Default to 2 guests
+          });
+          
+          setAccommodations(accommodationResponse.accommodations);
+        } catch (error) {
+          console.error('Error fetching accommodations:', error);
+          if (error instanceof ApiError) {
+            setError(error.message);
+          } else {
+            setError('An unexpected error occurred while searching for accommodations');
+          }
+          setAccommodations([]);
+        } finally {
+          setIsLoadingAccommodations(false);
+        }
+      }
     } catch (error) {
       console.error('Error fetching flights:', error);
       if (error instanceof ApiError) {
@@ -58,11 +84,13 @@ export default function Home() {
 
   const handleFlightSelect = async (flight: Flight) => {
     setSelectedFlight(flight);
+    
+    // We still want to update accommodations based on the selected flight
     setIsLoadingAccommodations(true);
     setError(null);
 
     try {
-      // Search for accommodations in the destination city
+      // Search for accommodations in the destination city based on the selected flight
       const accommodationResponse = await AccommodationService.searchAccommodations({
         city: flight.destination,
         checkIn: flight.departureTime,
@@ -78,7 +106,7 @@ export default function Home() {
       } else {
         setError('An unexpected error occurred while searching for accommodations');
       }
-      setAccommodations([]);
+      // Don't clear accommodations if fetching fails, keep the ones from the initial search
     } finally {
       setIsLoadingAccommodations(false);
     }
@@ -90,8 +118,11 @@ export default function Home() {
 
   const handleAccommodationSelect = (accommodation: Accommodation) => {
     setSelectedAccommodation(accommodation);
-    // Navigate to the apartment details page
-    router.push(`/apartments/${accommodation.id}`);
+    // Log the apartment ID for debugging
+    console.log('Selected accommodation ID:', accommodation.id);
+    
+    // Navigate to the apartment details page with the clean ID
+    router.push(`/apartments/${encodeURIComponent(accommodation.id)}`);
   };
 
   return (
@@ -118,10 +149,15 @@ export default function Home() {
             </div>
           )}
 
-          {selectedFlight && (
+          {(accommodations.length > 0 || isLoadingAccommodations) && (
             <div className="mt-12">
               <h2 className="text-2xl font-semibold mb-4">
-                Available Accommodations in {selectedFlight.destination}
+                Available Accommodations 
+                {selectedFlight 
+                  ? ` in ${selectedFlight.destination}` 
+                  : searchResults.length > 0 && searchResults[0].destination 
+                    ? ` in ${searchResults[0].destination}` 
+                    : ''}
               </h2>
               <AccommodationResults
                 accommodations={accommodations}
