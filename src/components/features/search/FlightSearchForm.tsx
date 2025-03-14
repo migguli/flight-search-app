@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { format } from 'date-fns'
@@ -9,7 +9,6 @@ import { Calendar as CalendarIcon } from 'lucide-react'
 import React from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
 import {
@@ -33,6 +32,24 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Card } from '@/components/ui/card'
+import { CityAutocomplete } from '@/components/ui/city-autocomplete'
+import { config } from '@/lib/config'
+
+// Import the Google Maps types
+// This is referencing the types we defined in places-autocomplete.tsx
+declare namespace google.maps.places {
+  interface PlaceResult {
+    place_id?: string;
+    name?: string;
+    formatted_address?: string;
+    geometry?: {
+      location?: {
+        lat: () => number;
+        lng: () => number;
+      };
+    };
+  }
+}
 
 const formSchema = z.object({
   origin: z.string().min(3, 'Origin is required'),
@@ -56,6 +73,8 @@ interface FlightSearchFormProps {
 
 export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) => {
   const [isRoundTrip, setIsRoundTrip] = useState(true)
+  const [originCity, setOriginCity] = useState<{ country: string; capital: string } | null>(null);
+  const [destinationCity, setDestinationCity] = useState<{ country: string; capital: string } | null>(null);
 
   const defaultValues = {
     origin: 'Helsinki',
@@ -74,8 +93,32 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
     form.reset(defaultValues)
   }, [])
 
+  // Handle city selection and ensure form values are synchronized
+  const handleOriginCitySelect = (city: { country: string; capital: string }) => {
+    setOriginCity(city);
+    // Ensure form value matches the selected city
+    form.setValue('origin', city.capital, { shouldValidate: true });
+  };
+
+  const handleDestinationCitySelect = (city: { country: string; capital: string }) => {
+    setDestinationCity(city);
+    // Ensure form value matches the selected city
+    form.setValue('destination', city.capital, { shouldValidate: true });
+  };
+
   function onSubmit(values: z.infer<typeof formSchema>) {
-    onSearch(values)
+    // Enhance the search data with city details if available
+    const searchData = {
+      ...values,
+      // Add country information if available
+      originCountry: originCity?.country,
+      destinationCountry: destinationCity?.country,
+    };
+    
+    onSearch(values);
+    
+    // Log enhanced data for debugging
+    console.log('Enhanced search data:', searchData);
   }
 
   return (
@@ -107,7 +150,19 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
                 <FormItem>
                   <FormLabel>Origin</FormLabel>
                   <FormControl>
-                    <Input placeholder="From where?" {...field} />
+                    <Controller
+                      name="origin"
+                      control={form.control}
+                      render={({ field: { onChange, value, ...rest } }) => (
+                        <CityAutocomplete
+                          placeholder="From where?"
+                          value={value}
+                          onChange={(newValue) => onChange(newValue)}
+                          onCitySelect={handleOriginCitySelect}
+                          {...rest}
+                        />
+                      )}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -121,7 +176,19 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
                 <FormItem>
                   <FormLabel>Destination</FormLabel>
                   <FormControl>
-                    <Input placeholder="Where to?" {...field} />
+                    <Controller
+                      name="destination"
+                      control={form.control}
+                      render={({ field: { onChange, value, ...rest } }) => (
+                        <CityAutocomplete
+                          placeholder="Where to?"
+                          value={value}
+                          onChange={(newValue) => onChange(newValue)}
+                          onCitySelect={handleDestinationCitySelect}
+                          {...rest}
+                        />
+                      )}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -203,9 +270,11 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
             )}
           </div>
 
-          <Button type="submit" className="w-full">Search Flights</Button>
+          <Button type="submit" size="lg" className="w-full">
+            Search Flights
+          </Button>
         </form>
       </Form>
     </Card>
-  )
-} 
+  );
+}; 

@@ -151,3 +151,55 @@ interface FlightResult {
 
 - Not added yet.
 
+# Flight Search App
+
+This is a flight search application with city autocomplete powered by Google Maps Places API.
+
+## Features
+
+- Search for flights between cities
+- Google Maps Places API integration for city autocomplete
+- View flight search results with prices and details
+- Find accommodations at your destination
+
+## Setup
+
+1. Clone the repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
+
+3. Set up your environment variables by creating a `.env.local` file in the root directory with the following:
+   ```
+   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+   ```
+
+4. Get a Google Maps API Key:
+   - Go to the [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project (or select an existing one)
+   - Enable the "Places API" for your project
+   - Create an API key and restrict it to the Places API
+   - Copy your API key and paste it in the `.env.local` file
+
+5. Run the development server:
+   ```
+   npm run dev
+   ```
+
+6. Open [http://localhost:3000](http://localhost:3000) in your browser to see the app
+
+## API Key Restrictions
+
+For security, restrict your Google Maps API key:
+- Set application restrictions to HTTP referrers and add your domains
+- Enable only the Places API for this key
+- In production, set up billing with proper quotas
+
+## Usage
+
+1. Enter your origin city in the "From" field - the autocomplete will show matching cities
+2. Enter your destination city in the "To" field - the autocomplete will show matching cities
+3. Select your departure and return dates
+4. Click "Search Flights" to see available options
+
