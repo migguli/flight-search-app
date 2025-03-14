@@ -153,7 +153,77 @@ interface FlightResult {
 
 # Flight Search App
 
-This is a flight search application with city autocomplete powered by Google Maps Places API.
+A web application for searching and booking flights.
+
+## Project Overview
+
+This application is built with Next.js and is deployed to AWS S3 for static hosting, with CloudFront for content delivery.
+
+## Development Setup
+
+1. **Clone the repository**
+
+```bash
+git clone <repository-url>
+cd flight-search-app
+```
+
+2. **Install dependencies**
+
+```bash
+npm install
+```
+
+3. **Set up environment variables**
+
+Copy `.env.local.example` to `.env.local` and fill in the required values.
+
+```bash
+cp .env.local.example .env.local
+```
+
+4. **Start the development server**
+
+```bash
+npm run dev
+```
+
+## Deployment
+
+The application is deployed to AWS S3 buckets with the following environments:
+
+- **Development**: `flight-search-app-dev`
+- **Production**: `flight-search-app-prod`
+
+### Deploy using the script
+
+```bash
+# Deploy to dev environment (default)
+./scripts/deploy.sh
+
+# Deploy to production environment
+./scripts/deploy.sh prod
+```
+
+## Infrastructure
+
+The infrastructure is managed with OpenTofu (previously Terraform). The configuration files are located in the `/terraform` directory.
+
+Note: Current IAM permissions are limited to uploading files to the S3 buckets. To modify the infrastructure configuration, additional permissions would be required.
+
+## OpenTofu Setup
+
+OpenTofu is installed using ASDF version manager:
+
+```bash
+# Check OpenTofu version
+asdf exec tofu --version
+```
+
+## Additional Notes
+
+- AWS credentials are stored in `.env.local` and should not be committed to version control.
+- The Google Maps API key is also stored in `.env.local` for local development.
 
 ## Features
 
