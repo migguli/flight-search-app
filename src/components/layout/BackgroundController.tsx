@@ -10,6 +10,13 @@ export type BackgroundType = 'particles' | 'three';
 export default function BackgroundController() {
   const [backgroundType, setBackgroundType] = useState<BackgroundType>('particles');
   const [isControlVisible, setIsControlVisible] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Set isMounted to true once component is mounted
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
 
   // Toggle background type
   const toggleBackground = () => {
@@ -18,6 +25,8 @@ export default function BackgroundController() {
 
   // Show/hide controls with keyboard shortcut (Alt+B)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey && e.key === 'b') {
         setIsControlVisible(prev => !prev);
@@ -27,6 +36,11 @@ export default function BackgroundController() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Only render children when component is mounted
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <>

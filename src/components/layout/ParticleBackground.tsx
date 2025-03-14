@@ -23,7 +23,7 @@ export default function ParticleBackground() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || typeof window === 'undefined') return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
