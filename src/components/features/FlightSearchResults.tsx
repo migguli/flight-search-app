@@ -15,6 +15,7 @@ export interface Flight extends Omit<APIFlight, 'segments' | 'price' | 'totalDur
   price: number;
   duration: string;
   stops: number;
+  bookingUrl?: string;
 }
 
 // Helper function to transform API flight to UI flight
@@ -33,6 +34,7 @@ export const transformAPIFlight = (apiFlight: APIFlight): Flight => {
     price: apiFlight.price.amount,
     duration: apiFlight.totalDuration,
     stops: apiFlight.stops,
+    bookingUrl: apiFlight.bookingUrl
   };
 };
 

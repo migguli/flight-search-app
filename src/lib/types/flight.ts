@@ -30,6 +30,7 @@ export interface Flight {
   };
   stops: number;
   totalDuration: string;
+  bookingUrl?: string;
 }
 
 export interface FlightSearchParams {

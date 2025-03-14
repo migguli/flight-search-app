@@ -46,9 +46,12 @@ export default function Home() {
 
   const handleFlightSelect = (flight: Flight) => {
     setSelectedFlight(flight);
-    // TODO: Implement booking flow or navigation to booking page
-    console.log('Selected flight:', flight);
-    alert(`Flight ${flight.flightNumber} selected! This will be connected to the booking flow.`);
+    if (flight.bookingUrl) {
+      window.open(flight.bookingUrl, '_blank');
+    } else {
+      console.error('No booking URL available for this flight');
+      alert('Sorry, booking link is not available for this flight.');
+    }
   };
 
   return (

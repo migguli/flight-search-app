@@ -29,7 +29,8 @@ const generateMockFlights = (params: FlightSearchParams): Flight[] => {
       ],
       price: { amount: 299, currency: 'EUR' },
       stops: 0,
-      totalDuration: '4h 00m'
+      totalDuration: '4h 00m',
+      bookingUrl: `https://www.skyscanner.com/transport/flights/${params.origin.toLowerCase()}/${params.destination.toLowerCase()}/${params.departureDate.split('T')[0]}`
     },
     {
       id: '2',
