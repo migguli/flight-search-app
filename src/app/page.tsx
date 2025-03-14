@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FlightSearchForm, FlightSearchParams } from '@/components/features/FlightSearchForm';
 import { FlightSearchResults, Flight } from '@/components/features/FlightSearchResults';
 import { FlightFilters } from '@/components/features/FlightFilters';
+import { TodoList } from '@/components/features/todo/TodoList';
 
 export default function Home() {
   const [searchResults, setSearchResults] = useState<Flight[]>([]);
@@ -88,6 +89,11 @@ export default function Home() {
               </div>
             </div>
           )}
+
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-center mb-6">Travel Todo List</h2>
+            <TodoList />
+          </div>
         </div>
       </div>
     </main>
