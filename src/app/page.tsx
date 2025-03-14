@@ -10,6 +10,7 @@ import { AccommodationService } from '@/lib/api/accommodationService';
 import { ApiError } from '@/lib/api/config';
 import type { FlightSearchParams } from '@/lib/types/flight';
 import type { Accommodation } from '@/lib/types/accommodation';
+import Image from 'next/image';
 
 export default function Home() {
   const router = useRouter();
@@ -125,48 +126,132 @@ export default function Home() {
     router.push(`/apartments/${encodeURIComponent(accommodation.id)}`);
   };
 
-  return (
-    <main className="min-h-screen bg-gray-50 py-12">
-      <div className="container mx-auto px-4">
-        <h1 className="text-4xl font-bold text-center mb-8">Find Your Perfect Flight & Stay</h1>
-        <div className="max-w-4xl mx-auto">
-          <FlightSearchForm onSearch={handleSearch} />
-          
-          {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
-              {error}
-            </div>
-          )}
-          
-          {(searchResults.length > 0 || isLoading) && (
-            <div className="mt-8">
-              <h2 className="text-2xl font-semibold mb-4">Available Flights</h2>
-              <FlightSearchResults
-                flights={searchResults}
-                isLoading={isLoading}
-                onSelect={handleFlightSelect}
-              />
-            </div>
-          )}
+  // Popular destinations for the inspiration section
+  const popularDestinations = [
+    { id: 1, name: 'Paris', image: '/images/paris.jpg', code: 'CDG' },
+    { id: 2, name: 'Tokyo', image: '/images/tokyo.jpg', code: 'HND' },
+    { id: 3, name: 'New York', image: '/images/new-york.jpg', code: 'JFK' },
+    { id: 4, name: 'Sydney', image: '/images/sydney.jpg', code: 'SYD' },
+  ];
 
-          {(accommodations.length > 0 || isLoadingAccommodations) && (
-            <div className="mt-12">
-              <h2 className="text-2xl font-semibold mb-4">
-                Available Accommodations 
-                {selectedFlight 
-                  ? ` in ${selectedFlight.destination}` 
-                  : searchResults.length > 0 && searchResults[0].destination 
-                    ? ` in ${searchResults[0].destination}` 
-                    : ''}
-              </h2>
-              <AccommodationResults
-                accommodations={accommodations}
-                isLoading={isLoadingAccommodations}
-                onSelect={handleAccommodationSelect}
-              />
+  return (
+    <main className="min-h-screen">
+      {/* Hero Section */}
+      <section className="hero-gradient text-white py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+              <span className="animated-gradient-text">Discover Your Next Adventure</span>
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 text-white/90">
+              Find and book flights to amazing destinations around the world
+            </p>
+            
+            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-white/20">
+              <FlightSearchForm onSearch={handleSearch} />
             </div>
-          )}
+          </div>
         </div>
+      </section>
+      
+      <div className="container mx-auto px-4 py-12">
+        {error && (
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 max-w-4xl mx-auto">
+            {error}
+          </div>
+        )}
+        
+        {/* Search Results Section */}
+        {(searchResults.length > 0 || isLoading) && (
+          <div className="mt-8 max-w-4xl mx-auto">
+            <h2 className="text-2xl font-semibold mb-6">Available Flights</h2>
+            <FlightSearchResults
+              flights={searchResults}
+              isLoading={isLoading}
+              onSelect={handleFlightSelect}
+            />
+          </div>
+        )}
+
+        {/* Accommodations Section */}
+        {(accommodations.length > 0 || isLoadingAccommodations) && (
+          <div className="mt-12 max-w-4xl mx-auto">
+            <h2 className="text-2xl font-semibold mb-6">
+              Available Accommodations 
+              {selectedFlight 
+                ? ` in ${selectedFlight.destination}` 
+                : searchResults.length > 0 && searchResults[0].destination 
+                  ? ` in ${searchResults[0].destination}` 
+                  : ''}
+            </h2>
+            <AccommodationResults
+              accommodations={accommodations}
+              isLoading={isLoadingAccommodations}
+              onSelect={handleAccommodationSelect}
+            />
+          </div>
+        )}
+        
+        {/* Travel Inspiration Section - Only show when no search results */}
+        {searchResults.length === 0 && !isLoading && (
+          <section className="mt-16">
+            <h2 className="text-3xl font-bold text-center mb-10">Popular Destinations</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {popularDestinations.map((destination) => (
+                <div 
+                  key={destination.id}
+                  className="rounded-xl overflow-hidden shadow-md card-hover"
+                  onClick={() => {
+                    // You could pre-fill the search form with this destination
+                    console.log(`Selected destination: ${destination.code}`);
+                  }}
+                >
+                  <div className="relative h-48">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+                    <div className="absolute bottom-4 left-4 text-white z-20">
+                      <h3 className="text-xl font-bold">{destination.name}</h3>
+                      <p className="text-sm text-white/80">Explore flights</p>
+                    </div>
+                    <div className="w-full h-full bg-primary-100 flex items-center justify-center">
+                      <span className="text-3xl">✈️</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+        
+        {/* Features Section */}
+        {searchResults.length === 0 && !isLoading && (
+          <section className="mt-20 mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="p-6 rounded-xl bg-gradient-to-br from-primary-50 to-white shadow-sm border border-primary-100 card-hover">
+                <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center mb-4 text-white">
+                  🔍
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Easy Search</h3>
+                <p className="text-neutral-600">Find the perfect flight with our powerful search engine</p>
+              </div>
+              
+              <div className="p-6 rounded-xl bg-gradient-to-br from-accent-50 to-white shadow-sm border border-accent-100 card-hover">
+                <div className="w-12 h-12 bg-accent-500 rounded-full flex items-center justify-center mb-4 text-white">
+                  💰
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Best Prices</h3>
+                <p className="text-neutral-600">Compare prices across major airlines and booking sites</p>
+              </div>
+              
+              <div className="p-6 rounded-xl bg-gradient-to-br from-primary-50 to-white shadow-sm border border-primary-100 card-hover">
+                <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center mb-4 text-white">
+                  🏨
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Complete Package</h3>
+                <p className="text-neutral-600">Book your flight and accommodations in one place</p>
+              </div>
+            </div>
+          </section>
+        )}
       </div>
     </main>
   );

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 import Image from 'next/image';
+import { Clock, Navigation, Calendar, DollarSign, Plane, ArrowRight } from 'lucide-react';
 import type { Flight as APIFlight } from '@/lib/types/flight';
 import type { Accommodation } from '@/lib/types/accommodation';
 import { AccommodationService } from '@/lib/api/accommodationService';
@@ -59,6 +60,7 @@ export const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
   const [expandedCity, setExpandedCity] = useState<string | null>(null);
   const [cityAccommodations, setCityAccommodations] = useState<Record<string, Accommodation[]>>({});
   const [isLoadingAccommodations, setIsLoadingAccommodations] = useState<Record<string, boolean>>({});
+  const [expandedFlight, setExpandedFlight] = useState<string | null>(null);
 
   // Fetch accommodations for a city when expanded
   useEffect(() => {
@@ -86,25 +88,123 @@ export const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
     }
   }, [expandedCity, cityAccommodations]);
 
+  // Format date to display in a more readable format
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
+
+  // Format date to display day and month
+  const formatDay = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  // Format price to display as currency
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
+  };
+
+  const handleViewDetails = (destination: string) => {
+    if (expandedCity === destination) {
+      setExpandedCity(null);
+    } else {
+      setExpandedCity(destination);
+    }
+  };
+
+  const toggleFlightDetails = (flightId: string) => {
+    if (expandedFlight === flightId) {
+      setExpandedFlight(null);
+    } else {
+      setExpandedFlight(flightId);
+    }
+  };
+
+  const handleSelectFlight = (flight: Flight) => {
+    if (onSelect) {
+      onSelect(flight);
+    }
+  };
+
+  const getStopsLabel = (stops: number) => {
+    switch (stops) {
+      case 0:
+        return 'Direct';
+      case 1:
+        return '1 Stop';
+      default:
+        return `${stops} Stops`;
+    }
+  };
+
+  // Generate a linear gradient based on airline name for branding
+  const getAirlineColor = (airline: string) => {
+    // Simple hash function to generate consistent colors
+    const hash = airline.split('').reduce((acc, char) => {
+      return char.charCodeAt(0) + ((acc << 5) - acc);
+    }, 0);
+    
+    const h = Math.abs(hash) % 360;
+    return `hsl(${h}, 70%, 65%)`;
+  };
+
+  // Skeleton loader for flight cards
+  const renderSkeletons = () => (
+    <>
+      {[1, 2, 3].map((i) => (
+        <Card key={i} className="mb-4 overflow-hidden border border-neutral-200">
+          <div className="p-4">
+            <div className="flex justify-between mb-4">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-6 w-20" />
+            </div>
+            <div className="flex justify-between items-center">
+              <div>
+                <Skeleton className="h-8 w-16 mb-1" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-4 w-16" />
+              <div>
+                <Skeleton className="h-8 w-16 mb-1" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </div>
+            <div className="mt-4">
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+        </Card>
+      ))}
+    </>
+  );
+
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 gap-4">
-        {[...Array(3)].map((_, index) => (
-          <Card key={index}>
-            <CardContent className="p-6">
-              <Skeleton className="h-32 w-full" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-4">
+        {renderSkeletons()}
       </div>
     );
   }
 
   if (flights.length === 0) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-8 bg-neutral-50 rounded-lg border border-neutral-200">
+        <div className="text-5xl mb-4">✈️</div>
         <h3 className="text-xl font-semibold mb-2">No flights found</h3>
-        <p className="text-gray-600">Try adjusting your search criteria</p>
+        <p className="text-neutral-600">Try different search criteria</p>
       </div>
     );
   }
@@ -133,16 +233,8 @@ export const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
     };
   });
 
-  const handleViewDetails = (destination: string) => {
-    if (expandedCity === destination) {
-      setExpandedCity(null);
-    } else {
-      setExpandedCity(destination);
-    }
-  };
-
   return (
-    <div className="grid grid-cols-1 gap-4">
+    <div className="space-y-4">
       {destinationSummary.map((summary) => (
         <React.Fragment key={summary.destination}>
           <Card className="hover:shadow-lg transition-shadow">
@@ -186,7 +278,7 @@ export const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
                               <Button 
                                 size="sm"
                                 className="mt-1" 
-                                onClick={() => onSelect?.(flight)}
+                                onClick={() => toggleFlightDetails(flight.id)}
                                 aria-label={`Select flight ${flight.flightNumber} from ${flight.origin} to ${flight.destination}`}
                               >
                                 Select
@@ -312,6 +404,13 @@ export const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
           )}
         </React.Fragment>
       ))}
+      
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }; 
