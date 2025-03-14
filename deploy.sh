@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Define AWS profile
+AWS_PROFILE="flight-search-app"
+
 # Load environment variables from .env.local
 if [ -f .env.local ]; then
   echo "Loading environment variables from .env.local"
@@ -10,7 +13,7 @@ else
 fi
 
 # Check if required environment variables are set
-if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_REGION" ] || [ -z "$AWS_S3_BUCKET" ]; then
+if [ -z "$AWS_REGION" ] || [ -z "$AWS_S3_BUCKET" ]; then
   echo "Error: Required AWS environment variables are not set in .env.local"
   exit 1
 fi
@@ -40,12 +43,12 @@ npm run export
 
 # Deploy to S3
 echo "Deploying to S3 bucket: $AWS_S3_BUCKET"
-aws s3 sync out/ s3://$AWS_S3_BUCKET --delete
+aws s3 sync out/ s3://$AWS_S3_BUCKET --delete --profile $AWS_PROFILE
 
 # Invalidate CloudFront cache if the distribution ID is set
 if [ -n "$AWS_CLOUDFRONT_DISTRIBUTION_ID" ]; then
   echo "Invalidating CloudFront cache for distribution: $AWS_CLOUDFRONT_DISTRIBUTION_ID"
-  aws cloudfront create-invalidation --distribution-id $AWS_CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
+  aws cloudfront create-invalidation --distribution-id $AWS_CLOUDFRONT_DISTRIBUTION_ID --paths "/*" --profile $AWS_PROFILE
 else
   echo "Skipping CloudFront invalidation (AWS_CLOUDFRONT_DISTRIBUTION_ID not set)"
 fi
