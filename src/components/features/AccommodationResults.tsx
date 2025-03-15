@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import Image from 'next/image';
@@ -15,6 +15,14 @@ export const AccommodationResults: React.FC<AccommodationResultsProps> = ({
   isLoading,
   onSelect,
 }) => {
+  // State to track how many accommodations to show
+  const [visibleCount, setVisibleCount] = useState(3);
+  
+  // Function to show more accommodations
+  const handleShowMore = () => {
+    setVisibleCount(prevCount => Math.min(prevCount + 5, accommodations.length));
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -41,9 +49,18 @@ export const AccommodationResults: React.FC<AccommodationResultsProps> = ({
     );
   }
 
+  // Sort accommodations by rating (most popular first)
+  const sortedAccommodations = [...accommodations].sort((a, b) => b.rating - a.rating);
+  
+  // Get only the visible accommodations
+  const visibleAccommodations = sortedAccommodations.slice(0, visibleCount);
+  
+  // Check if there are more accommodations to show
+  const hasMoreToShow = visibleCount < accommodations.length;
+
   return (
     <div className="space-y-4">
-      {accommodations.map((accommodation) => (
+      {visibleAccommodations.map((accommodation) => (
         <Card key={accommodation.id} className="hover:shadow-lg transition-shadow">
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -105,6 +122,19 @@ export const AccommodationResults: React.FC<AccommodationResultsProps> = ({
           </CardContent>
         </Card>
       ))}
+      
+      {/* Show more button - only displayed if there are more accommodations to show */}
+      {hasMoreToShow && (
+        <div className="text-center mt-4">
+          <Button 
+            variant="outline" 
+            onClick={handleShowMore}
+            className="px-6"
+          >
+            Show more
+          </Button>
+        </div>
+      )}
     </div>
   );
 }; 
