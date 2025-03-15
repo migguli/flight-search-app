@@ -10,7 +10,8 @@ import { ApiError } from '@/lib/api/config';
 import { useSkyscannerSearch } from '@/lib/hooks/useSkyscannerSearch';
 import type { Flight as APIFlight, FlightSearchParams } from '@/lib/types/flight';
 import type { Accommodation } from '@/lib/types/accommodation';
-import Image from 'next/image';
+import { PopularDestinations, Destination } from '@/components/features/destinations';
+import React from 'react';
 
 export default function Home() {
   const router = useRouter();
@@ -23,6 +24,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async (formParams: FormSearchParams) => {
+    console.log('handleSearch called with params:', formParams);
+    
     setError(null);
     setAccommodations([]);
     setSelectedFlight(null);
@@ -39,11 +42,16 @@ export default function Home() {
         cabinClass: 'economy' // Default to economy
       };
 
+      console.log('Transformed search params for API:', searchParams);
+
       // Use our Skyscanner search hook
       const flightResults = await searchFlights(searchParams);
+      console.log('Flight results from API:', flightResults);
       
       // Transform API flights to UI flights
       const transformedFlights = flightResults.map((flight: APIFlight) => transformAPIFlight(flight));
+      console.log('Transformed flights for UI:', transformedFlights);
+      
       setSearchResults(transformedFlights);
       
       // Immediately fetch accommodations when flights are found
@@ -145,31 +153,29 @@ export default function Home() {
     router.push(`/apartments/${encodeURIComponent(accommodation.id)}`);
   };
 
-  // Popular destinations for the inspiration section
-  const popularDestinations = [
-    { id: 1, name: 'Paris', image: '/images/paris.jpg', code: 'CDG' },
-    { id: 2, name: 'Tokyo', image: '/images/tokyo.jpg', code: 'HND' },
-    { id: 3, name: 'New York', image: '/images/new-york.jpg', code: 'JFK' },
-    { id: 4, name: 'Sydney', image: '/images/sydney.jpg', code: 'SYD' },
-  ];
-
-  // Function to search for a popular destination
-  const searchPopularDestination = (destination: { name: string, code: string }) => {
+  // Function to handle destination selection
+  const handleDestinationSelect = (destination: Destination) => {
     // Create search parameters with standardized destination format
     const cityName = destination.name.trim();
     
     console.log(`Searching for popular destination: ${cityName} (${destination.code})`);
     
     // Create a search for flights to the selected destination
-    handleSearch({
+    const searchParams = {
       origin: 'Helsinki', // Default origin
       destination: cityName, // Use just the city name without the code
       departureDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
       returnDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000), // 21 days from now
-    });
+    };
+    
+    console.log('Search parameters:', searchParams);
+    
+    handleSearch(searchParams);
     
     // Smoothly scroll to the search results
     document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth' });
+    
+    console.log('Search initiated and scrolled to results');
   };
 
   return (
@@ -246,31 +252,7 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold mb-6">Popular Destinations</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {popularDestinations.map(destination => (
-                  <div 
-                    key={destination.id} 
-                    className="relative overflow-hidden rounded-lg cursor-pointer border border-border hover:border-primary transition-colors duration-300 shadow-sm hover:shadow-md"
-                    onClick={() => searchPopularDestination(destination)}
-                  >
-                    <div className="aspect-w-16 aspect-h-9 relative">
-                      <Image
-                        src={destination.image}
-                        alt={destination.name}
-                        fill
-                        className="object-cover"
-                      />
-                      <div className="absolute bottom-0 left-0 p-4 bg-white">
-                        <h3 className="text-xl font-bold">{destination.name}</h3>
-                        <p className="text-sm text-accent">Flights from €199</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <PopularDestinations onDestinationSelect={handleDestinationSelect} />
           )}
         </div>
       </section>

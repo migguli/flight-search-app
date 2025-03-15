@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <rect width="600" height="400" fill="#e9ecef"/>
+  <text x="300" y="50" font-family="Arial" font-size="24" text-anchor="middle" fill="#495057">New York</text>
+  <!-- Simple New York skyline -->
+  <path d="M100,320 L100,250 L130,250 L130,200 L160,200 L160,230 L190,230 L190,180 L220,180 L220,250 L250,250 L250,150 L280,150 L280,200 L310,200 L310,100 L340,100 L340,220 L370,220 L370,170 L400,170 L400,250 L430,250 L430,200 L460,200 L460,270 L490,270 L490,320 Z" fill="#495057"/>
+  <!-- Simple Statue of Liberty -->
+  <path d="M520,320 L540,320 L540,200 L530,190 L530,150 L525,140 L535,140 L535,130 L525,130 L525,120 L535,120 L535,110 L520,110 L520,100 L510,100 L510,110 L495,110 L495,120 L505,120 L505,130 L495,130 L495,140 L505,140 L500,150 L500,190 L490,200 L490,320 Z" fill="#495057"/>
+  <text x="300" y="350" font-family="Arial" font-size="16" text-anchor="middle" fill="#495057">Flights from €199</text>
+</svg> 

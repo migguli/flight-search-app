@@ -24,7 +24,10 @@ const nextConfig = {
         hostname: 'placekitten.com',
       }
     ],
-    unoptimized: true
+    unoptimized: true,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   // Add headers configuration to disable caching
   async headers() {
