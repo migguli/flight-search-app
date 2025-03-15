@@ -50,9 +50,16 @@ export default function Home() {
       if (transformedFlights.length > 0) {
         setIsLoadingAccommodations(true);
         try {
+          // Extract the city name from the destination (remove any codes in parentheses)
+          const cityName = formParams.destination
+            .replace(/\([^)]*\)/g, '') // Remove anything in parentheses like (LON)
+            .trim();
+            
+          console.log(`Searching accommodations for city: "${cityName}"`);
+          
           // Search for accommodations in the destination city
           const accommodationResponse = await AccommodationService.searchAccommodations({
-            city: formParams.destination,
+            city: cityName,
             checkIn: formParams.departureDate.toISOString(),
             checkOut: formParams.returnDate?.toISOString() || '',
             guests: 2 // Default to 2 guests
@@ -90,8 +97,12 @@ export default function Home() {
     setError(null);
 
     try {
-      // Use the destination from the selected flight
-      const destinationCity = flight.destination;
+      // Extract the city name from the destination (remove any codes in parentheses)
+      const destinationCity = flight.destination
+        .replace(/\([^)]*\)/g, '') // Remove anything in parentheses like (LON)
+        .trim();
+        
+      console.log(`Flight selected: Searching accommodations for city: "${destinationCity}"`);
 
       // Search for accommodations in the destination city based on the selected flight
       const accommodationResponse = await AccommodationService.searchAccommodations({
@@ -138,10 +149,15 @@ export default function Home() {
 
   // Function to search for a popular destination
   const searchPopularDestination = (destination: { name: string, code: string }) => {
+    // Create search parameters with standardized destination format
+    const cityName = destination.name.trim();
+    
+    console.log(`Searching for popular destination: ${cityName} (${destination.code})`);
+    
     // Create a search for flights to the selected destination
     handleSearch({
       origin: 'Helsinki', // Default origin
-      destination: destination.name,
+      destination: cityName, // Use just the city name without the code
       departureDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
       returnDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000), // 21 days from now
     });

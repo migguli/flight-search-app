@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useState, useEffect, useRef } from "react"
-import { Check, ChevronsUpDown, MapPin } from "lucide-react"
+import { Check, ChevronsUpDown, MapPin, Plane } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -77,11 +77,6 @@ export function SkyscannerLocationAutocomplete({
       }))
       
       setOptions(mappedOptions)
-      
-      // Automatically open the dropdown when we have results
-      if (mappedOptions.length > 0 && !open) {
-        setOpen(true)
-      }
     } catch (error) {
       console.error("Error searching locations:", error)
       setOptions([])
@@ -113,15 +108,33 @@ export function SkyscannerLocationAutocomplete({
     }
   }, [])
 
+  // Handle selection of an item from the dropdown
   const handleSelect = (currentValue: string) => {
     const selectedOption = options.find(option => option.value === currentValue)
     
     if (selectedOption) {
       setSelectedValue(currentValue)
-      setDisplayValue(selectedOption.label)
+      // Set display value to show both name and code if available
+      const displayName = selectedOption.code 
+        ? `${selectedOption.label} (${selectedOption.code})` 
+        : selectedOption.label
+      setDisplayValue(displayName)
       onSelect(selectedOption)
       setOpen(false)
     }
+  }
+
+  // Format display text for selected item
+  const getFormattedDisplayText = () => {
+    if (selectedValue) {
+      const selected = options.find((option) => option.value === selectedValue)
+      if (selected) {
+        return selected.code 
+          ? `${selected.label} (${selected.code})` 
+          : selected.label
+      }
+    }
+    return displayValue || placeholder
   }
 
   return (
@@ -133,18 +146,15 @@ export function SkyscannerLocationAutocomplete({
           aria-expanded={open}
           className={cn("w-full justify-between", className)}
           disabled={disabled}
-          onClick={() => setOpen(true)}
         >
-          {selectedValue && options.find((option) => option.value === selectedValue)
-            ? options.find((option) => option.value === selectedValue)?.label
-            : displayValue || placeholder}
+          {getFormattedDisplayText()}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">
         <Command>
           <CommandInput
-            placeholder={placeholder}
+            placeholder="Search by city name or airport code..."
             value={query}
             onValueChange={handleInputChange}
             className="h-9"
@@ -156,22 +166,33 @@ export function SkyscannerLocationAutocomplete({
             </div>
           )}
           <CommandEmpty>
-            {query.length > 0 
-              ? "No locations found." 
-              : "Type at least 2 characters to search"
-            }
+            {query.length > 0 && query.length < 2
+              ? "Type at least 2 characters to search"
+              : "No locations found."}
           </CommandEmpty>
           <CommandGroup>
             {options.map((option) => (
               <CommandItem
                 key={option.value}
+                value={option.value}
                 onSelect={() => handleSelect(option.value)}
-                className="flex items-center"
+                className="flex items-center cursor-pointer hover:bg-accent"
               >
-                <MapPin className="mr-2 h-4 w-4" />
-                <span>{option.label}</span>
+                {option.type === 'AIRPORT' ? (
+                  <Plane className="mr-2 h-4 w-4" />
+                ) : (
+                  <MapPin className="mr-2 h-4 w-4" />
+                )}
+                <div className="flex flex-col">
+                  <span className="font-medium">{option.label}</span>
+                  {option.type === 'AIRPORT' && (
+                    <span className="text-xs text-muted-foreground">
+                      Airport
+                    </span>
+                  )}
+                </div>
                 {option.code && (
-                  <span className="ml-auto text-xs text-muted-foreground">
+                  <span className="ml-auto text-sm font-bold">
                     {option.code}
                   </span>
                 )}

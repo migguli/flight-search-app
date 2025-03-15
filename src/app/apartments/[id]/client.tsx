@@ -7,6 +7,9 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { useSkyscannerSearch } from '@/lib/hooks/useSkyscannerSearch';
+import { SkyscannerLocationAutocomplete, LocationOption } from '@/components/ui/skyscanner-location-autocomplete';
 import type { Accommodation } from '@/lib/types/accommodation';
 
 interface ApartmentDetailsClientProps {
@@ -21,6 +24,34 @@ export function ApartmentDetailsClient({ apartment, error }: ApartmentDetailsCli
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [searchLocation, setSearchLocation] = useState<LocationOption | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  const { searchPlaces } = useSkyscannerSearch();
+  
+  const handleLocationSelect = async (location: LocationOption) => {
+    setSearchLocation(location);
+    setSearchError(null);
+    setIsSearching(true);
+    
+    try {
+      // Extract the clean city name (remove airport codes)
+      const cityName = location.label
+        .replace(/\([^)]*\)/g, '') // Remove anything in parentheses like (LON)
+        .trim();
+      
+      // Here you would typically redirect to a search page with the location
+      // In this simple implementation, we'll just navigate to the home page
+      // with the search location as a query parameter
+      router.push(`/?location=${encodeURIComponent(cityName)}`);
+    } catch (error) {
+      console.error('Error searching for location:', error);
+      setSearchError('Failed to search for this location. Please try again.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const handleReserve = () => {
     // Implementation for reservation logic
@@ -62,6 +93,34 @@ export function ApartmentDetailsClient({ apartment, error }: ApartmentDetailsCli
           )}
         </div>
       )}
+
+      {/* Search Section */}
+      <div className="mb-8">
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-border">
+          <h2 className="text-xl font-semibold mb-4">Find more apartments</h2>
+          <div className="flex flex-col space-y-2">
+            <label htmlFor="location-search" className="text-sm font-medium">
+              Location
+            </label>
+            <SkyscannerLocationAutocomplete
+              placeholder="Search for airports or cities..."
+              onSearch={searchPlaces}
+              onSelect={handleLocationSelect}
+              value={searchLocation?.value}
+              disabled={isSearching}
+            />
+            {searchError && (
+              <p className="text-sm text-red-500 mt-1">{searchError}</p>
+            )}
+            {isSearching && (
+              <div className="flex items-center mt-2">
+                <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full mr-2"></div>
+                <p className="text-sm">Searching...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Header Section */}
       <div className="mb-8">

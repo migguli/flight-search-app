@@ -9,7 +9,17 @@ const cities = [
   { city: 'New York', country: 'USA', lat: 40.7128, lon: -74.0060 },
   { city: 'Tokyo', country: 'Japan', lat: 35.6762, lon: 139.6503 },
   { city: 'Barcelona', country: 'Spain', lat: 41.3851, lon: 2.1734 },
-  // ... adding more cities would make this file very long, so I'll keep it shorter for demonstration
+  { city: 'Rome', country: 'Italy', lat: 41.9028, lon: 12.4964 },
+  { city: 'Amsterdam', country: 'Netherlands', lat: 52.3676, lon: 4.9041 },
+  { city: 'Berlin', country: 'Germany', lat: 52.5200, lon: 13.4050 },
+  { city: 'Madrid', country: 'Spain', lat: 40.4168, lon: -3.7038 },
+  { city: 'Vienna', country: 'Austria', lat: 48.2082, lon: 16.3738 },
+  { city: 'Prague', country: 'Czech Republic', lat: 50.0755, lon: 14.4378 },
+  { city: 'Helsinki', country: 'Finland', lat: 60.1699, lon: 24.9384 },
+  { city: 'Stockholm', country: 'Sweden', lat: 59.3293, lon: 18.0686 },
+  { city: 'Oslo', country: 'Norway', lat: 59.9139, lon: 10.7522 },
+  { city: 'Copenhagen', country: 'Denmark', lat: 55.6761, lon: 12.5683 },
+  { city: 'Lisbon', country: 'Portugal', lat: 38.7223, lon: -9.1393 },
 ];
 
 // Common host profiles to mix and match
@@ -84,9 +94,19 @@ const generateMockAccommodations = (params: AccommodationSearchParams): Accommod
   // Filter cities based on search params if provided
   let filteredCities = cities;
   if (params.city) {
+    const searchCity = params.city.toLowerCase().trim();
     filteredCities = cities.filter(c => 
-      c.city.toLowerCase().includes(params.city!.toLowerCase())
+      c.city.toLowerCase().includes(searchCity)
     );
+    
+    // If no cities match, log this for debugging
+    if (filteredCities.length === 0) {
+      console.log(`No cities found matching '${searchCity}'. Available cities:`, 
+        cities.map(c => c.city.toLowerCase()));
+      
+      // Return empty array when no matches found
+      return [];
+    }
   }
 
   // Generate 3-4 properties for each city

@@ -93,13 +93,44 @@ export const useSkyscannerSearch = () => {
       
       // Filter places based on the search query (case insensitive)
       const lowercaseQuery = query.toLowerCase();
-      const filteredPlaces = commonPlaces.filter(place => 
-        place.name.toLowerCase().includes(lowercaseQuery) || 
-        place.iata.toLowerCase().includes(lowercaseQuery)
-      );
+      
+      // Enhanced filtering with priority ranking
+      // 1. Exact IATA code matches (highest priority)
+      // 2. IATA code starts with query
+      // 3. City/airport name starts with query
+      // 4. City/airport name or IATA contains query
+      const filteredAndRankedPlaces = commonPlaces
+        .filter(place => 
+          place.name.toLowerCase().includes(lowercaseQuery) || 
+          place.iata.toLowerCase().includes(lowercaseQuery)
+        )
+        .sort((a, b) => {
+          // Exact IATA match gets highest priority
+          if (a.iata.toLowerCase() === lowercaseQuery) return -1;
+          if (b.iata.toLowerCase() === lowercaseQuery) return 1;
+          
+          // IATA code starts with query gets next priority
+          const aIataStartsWith = a.iata.toLowerCase().startsWith(lowercaseQuery);
+          const bIataStartsWith = b.iata.toLowerCase().startsWith(lowercaseQuery);
+          if (aIataStartsWith && !bIataStartsWith) return -1;
+          if (!aIataStartsWith && bIataStartsWith) return 1;
+          
+          // Name starts with query gets next priority
+          const aNameStartsWith = a.name.toLowerCase().startsWith(lowercaseQuery);
+          const bNameStartsWith = b.name.toLowerCase().startsWith(lowercaseQuery);
+          if (aNameStartsWith && !bNameStartsWith) return -1;
+          if (!aNameStartsWith && bNameStartsWith) return 1;
+          
+          // Cities before airports as a final tiebreaker
+          if (a.type === 'CITY' && b.type === 'AIRPORT') return -1;
+          if (a.type === 'AIRPORT' && b.type === 'CITY') return 1;
+          
+          // Alphabetical order as final fallback
+          return a.name.localeCompare(b.name);
+        });
       
       // Add coordinates to the places (simplified for mock)
-      const placesWithCoordinates = filteredPlaces.map(place => ({
+      const placesWithCoordinates = filteredAndRankedPlaces.map(place => ({
         ...place,
         coordinates: place.type === 'AIRPORT' ? {
           latitude: Math.random() * 180 - 90, // Random coordinates for demo
