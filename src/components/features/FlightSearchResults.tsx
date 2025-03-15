@@ -170,8 +170,24 @@ export const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
       const fetchAccommodations = async () => {
         setIsLoadingAccommodations(prev => ({ ...prev, [expandedCity]: true }));
         try {
+          // Clean up city name - remove any airport codes or special formats
+          let cityNameForSearch = expandedCity;
+          
+          // Handle airport codes in format like "LON_SKY"
+          if (cityNameForSearch.includes('_')) {
+            // Extract the first part before underscore (e.g., "LON" from "LON_SKY")
+            const cityCode = cityNameForSearch.split('_')[0];
+            console.log(`Extracted city code ${cityCode} from ${cityNameForSearch}`);
+            // The accommodationService will handle the matching
+          }
+          
+          // Remove anything in parentheses like (LON)
+          cityNameForSearch = cityNameForSearch.replace(/\([^)]*\)/g, '').trim();
+          
+          console.log(`Searching accommodations for: "${cityNameForSearch}"`);
+          
           const response = await AccommodationService.searchAccommodations({
-            city: expandedCity,
+            city: cityNameForSearch,
             guests: 2 // Default to 2 guests
           });
           setCityAccommodations(prev => ({ 

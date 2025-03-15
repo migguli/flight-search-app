@@ -20,6 +20,30 @@ const cities = [
   { city: 'Oslo', country: 'Norway', lat: 59.9139, lon: 10.7522 },
   { city: 'Copenhagen', country: 'Denmark', lat: 55.6761, lon: 12.5683 },
   { city: 'Lisbon', country: 'Portugal', lat: 38.7223, lon: -9.1393 },
+  { city: 'Sydney', country: 'Australia', lat: -33.8688, lon: 151.2093 },
+  { city: 'Melbourne', country: 'Australia', lat: -37.8136, lon: 144.9631 },
+  { city: 'Singapore', country: 'Singapore', lat: 1.3521, lon: 103.8198 },
+  { city: 'Hong Kong', country: 'China', lat: 22.3193, lon: 114.1694 },
+  { city: 'Dubai', country: 'UAE', lat: 25.2048, lon: 55.2708 },
+  { city: 'Istanbul', country: 'Turkey', lat: 41.0082, lon: 28.9784 },
+  { city: 'Bangkok', country: 'Thailand', lat: 13.7563, lon: 100.5018 },
+  { city: 'Seoul', country: 'South Korea', lat: 37.5665, lon: 126.9780 },
+  { city: 'Mumbai', country: 'India', lat: 19.0760, lon: 72.8777 },
+  { city: 'Cape Town', country: 'South Africa', lat: -33.9249, lon: 18.4241 },
+  { city: 'Rio de Janeiro', country: 'Brazil', lat: -22.9068, lon: -43.1729 },
+  { city: 'Buenos Aires', country: 'Argentina', lat: -34.6037, lon: -58.3816 },
+  { city: 'Mexico City', country: 'Mexico', lat: 19.4326, lon: -99.1332 },
+  { city: 'Vancouver', country: 'Canada', lat: 49.2827, lon: -123.1207 },
+  { city: 'Toronto', country: 'Canada', lat: 43.6532, lon: -79.3832 },
+  { city: 'San Francisco', country: 'USA', lat: 37.7749, lon: -122.4194 },
+  { city: 'Los Angeles', country: 'USA', lat: 34.0522, lon: -118.2437 },
+  { city: 'Chicago', country: 'USA', lat: 41.8781, lon: -87.6298 },
+  { city: 'Miami', country: 'USA', lat: 25.7617, lon: -80.1918 },
+  { city: 'Athens', country: 'Greece', lat: 37.9838, lon: 23.7275 },
+  { city: 'Venice', country: 'Italy', lat: 45.4408, lon: 12.3155 },
+  { city: 'Florence', country: 'Italy', lat: 43.7696, lon: 11.2558 },
+  { city: 'Zurich', country: 'Switzerland', lat: 47.3769, lon: 8.5417 },
+  { city: 'Geneva', country: 'Switzerland', lat: 46.2044, lon: 6.1432 },
 ];
 
 // Common host profiles to mix and match
@@ -95,9 +119,23 @@ const generateMockAccommodations = (params: AccommodationSearchParams): Accommod
   let filteredCities = cities;
   if (params.city) {
     const searchCity = params.city.toLowerCase().trim();
+    
+    // First try to match by city name
     filteredCities = cities.filter(c => 
       c.city.toLowerCase().includes(searchCity)
     );
+    
+    // If no matches found, try to extract city name from airport code format (e.g., "LON_SKY")
+    if (filteredCities.length === 0 && searchCity.includes('_')) {
+      // Extract the first part before underscore (e.g., "LON" from "LON_SKY")
+      const cityCode = searchCity.split('_')[0];
+      
+      // Try to find cities that might match this code (first 3 letters)
+      filteredCities = cities.filter(c => 
+        c.city.toLowerCase().startsWith(cityCode) || 
+        c.city.toLowerCase().includes(cityCode)
+      );
+    }
     
     // If no cities match, log this for debugging
     if (filteredCities.length === 0) {
@@ -109,9 +147,9 @@ const generateMockAccommodations = (params: AccommodationSearchParams): Accommod
     }
   }
 
-  // Generate 3-4 properties for each city
+  // Generate 2-10 properties for each city
   filteredCities.forEach(city => {
-    const numProperties = 3 + Math.floor(Math.random() * 2); // 3 or 4
+    const numProperties = 2 + Math.floor(Math.random() * 9); // 2 to 10
     
     for (let i = 0; i < numProperties; i++) {
       const host = hostProfiles[Math.floor(Math.random() * hostProfiles.length)];

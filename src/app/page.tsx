@@ -51,11 +51,17 @@ export default function Home() {
         setIsLoadingAccommodations(true);
         try {
           // Extract the city name from the destination (remove any codes in parentheses)
-          const cityName = formParams.destination
+          let cityName = formParams.destination
             .replace(/\([^)]*\)/g, '') // Remove anything in parentheses like (LON)
             .trim();
-            
-          console.log(`Searching accommodations for city: "${cityName}"`);
+          
+          // Handle airport codes in format like "LON_SKY"
+          if (cityName.includes('_')) {
+            // Keep the original format for the accommodationService to handle
+            console.log(`Searching accommodations for airport code: "${cityName}"`);
+          } else {
+            console.log(`Searching accommodations for city: "${cityName}"`);
+          }
           
           // Search for accommodations in the destination city
           const accommodationResponse = await AccommodationService.searchAccommodations({
