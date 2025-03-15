@@ -27,8 +27,8 @@ export default function Footer() {
             <div className="flex items-center justify-center md:justify-start gap-3">
               <Shield size={24} className="text-primary" />
               <div>
-                <h3 className="font-bold">Best Price Guarantee</h3>
-                <p className="text-sm text-muted-foreground">Find it cheaper, we refund</p>
+                <h3 className="font-bold">Exclusive Deals</h3>
+                <p className="text-sm text-muted-foreground">Special offers you won't find elsewhere</p>
               </div>
             </div>
           </div>
@@ -129,7 +129,7 @@ export default function Footer() {
         <div className="container mx-auto py-6 px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-muted-foreground text-sm mb-4 md:mb-0">
-              &copy; {currentYear} FlightFinder. All rights reserved.
+              This is a demonstration project and not a real product yet.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Link href="/privacy" className="text-muted-foreground hover:text-primary text-sm transition-colors">

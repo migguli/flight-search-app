@@ -130,29 +130,29 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card className="p-6">
           <div className="mb-6">
-            <div className="flex space-x-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="round-trip"
-                  name="trip-type"
-                  className="h-4 w-4 text-blue-600"
-                  checked={isRoundTrip}
-                  onChange={() => setIsRoundTrip(true)}
-                />
-                <Label htmlFor="round-trip">Round Trip</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="one-way"
-                  name="trip-type"
-                  className="h-4 w-4 text-blue-600"
-                  checked={!isRoundTrip}
-                  onChange={() => setIsRoundTrip(false)}
-                />
-                <Label htmlFor="one-way">One Way</Label>
-              </div>
+            <div className="flex rounded-md overflow-hidden border border-border">
+              <button
+                type="button"
+                className={`flex-1 py-2 px-4 text-center transition-colors ${
+                  isRoundTrip 
+                    ? 'bg-primary text-primary-foreground font-medium' 
+                    : 'bg-background hover:bg-muted'
+                }`}
+                onClick={() => setIsRoundTrip(true)}
+              >
+                Round Trip
+              </button>
+              <button
+                type="button"
+                className={`flex-1 py-2 px-4 text-center transition-colors ${
+                  !isRoundTrip 
+                    ? 'bg-primary text-primary-foreground font-medium' 
+                    : 'bg-background hover:bg-muted'
+                }`}
+                onClick={() => setIsRoundTrip(false)}
+              >
+                One Way
+              </button>
             </div>
           </div>
 
@@ -285,17 +285,9 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
             )}
           </div>
 
-          <div className="flex justify-between mt-8">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleResetForm}
-              className="w-28"
-            >
-              Reset
-            </Button>
-            <Button type="submit" className="w-28">
-              Search
+          <div className="flex justify-center mt-8">
+            <Button type="submit" className="w-full md:w-1/2 py-6 text-lg font-medium">
+              Search Flights
             </Button>
           </div>
         </Card>
