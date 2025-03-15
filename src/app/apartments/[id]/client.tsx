@@ -68,7 +68,7 @@ export function ApartmentDetailsClient({ apartment, error }: ApartmentDetailsCli
         <h1 className="text-3xl font-bold mb-2">{apartment.title}</h1>
         <div className="flex items-center gap-4">
           <Badge variant="secondary">
-            ★ {apartment.rating} ({apartment.numberOfReviews} reviews)
+            ★ {apartment.rating.toFixed(1)} ({apartment.numberOfReviews} reviews)
           </Badge>
           <span className="text-muted-foreground">
             {apartment.location?.city}, {apartment.location?.country}
@@ -124,7 +124,7 @@ export function ApartmentDetailsClient({ apartment, error }: ApartmentDetailsCli
               <div>
                 <h3 className="text-xl font-semibold">Hosted by {apartment.host?.name || "Host"}</h3>
                 <p className="text-muted-foreground">
-                  ★ {apartment.host?.rating || 4.5} · {apartment.host?.numberOfReviews || 0} reviews
+                  ★ {(apartment.host?.rating || 4.5).toFixed(1)} · {apartment.host?.numberOfReviews || 0} reviews
                 </p>
                 <p className="text-sm">Response time: {apartment.host?.responseTime || "1 day"}</p>
               </div>

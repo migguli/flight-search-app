@@ -5,8 +5,30 @@ import { ApiError } from '@/lib/api/config';
 
 // Generate static parameters for export
 export function generateStaticParams() {
-  // Generate static routes for these IDs
+  // Generate static routes for all possible apartment IDs
   return [
+    // City-based IDs
+    { id: 'london-1' },
+    { id: 'london-2' },
+    { id: 'london-3' },
+    { id: 'london-4' },
+    { id: 'paris-1' },
+    { id: 'paris-2' },
+    { id: 'paris-3' },
+    { id: 'paris-4' },
+    { id: 'new-york-1' },
+    { id: 'new-york-2' },
+    { id: 'new-york-3' },
+    { id: 'new-york-4' },
+    { id: 'tokyo-1' },
+    { id: 'tokyo-2' },
+    { id: 'tokyo-3' },
+    { id: 'tokyo-4' },
+    { id: 'barcelona-1' },
+    { id: 'barcelona-2' },
+    { id: 'barcelona-3' },
+    { id: 'barcelona-4' },
+    // Legacy numeric IDs for backward compatibility
     { id: '1' },
     { id: '2' },
     { id: '3' },
