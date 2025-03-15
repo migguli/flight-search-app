@@ -169,6 +169,7 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
                       onSearch={searchPlaces}
                       onSelect={handleOriginLocationSelect}
                       value={originLocation ? originLocation.label + (originLocation.code ? ` (${originLocation.code})` : '') : ''}
+                      showListingCounts={false}
                     />
                   </FormControl>
                   <FormMessage />
@@ -188,6 +189,7 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
                       onSearch={searchPlaces}
                       onSelect={handleDestinationLocationSelect}
                       value={destinationLocation ? destinationLocation.label + (destinationLocation.code ? ` (${destinationLocation.code})` : '') : ''}
+                      showListingCounts={true}
                     />
                   </FormControl>
                   <FormMessage />

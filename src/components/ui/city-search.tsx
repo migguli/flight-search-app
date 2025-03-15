@@ -6,6 +6,8 @@ import { Check, MapPin, Plane } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { SkyscannerPlace } from "@/lib/types/skyscanner"
+import { AccommodationService } from "@/lib/api/accommodationService"
+import { getAirportCity } from "@/lib/utils/airportUtils"
 
 export type CitySearchOption = {
   value: string
@@ -21,6 +23,7 @@ interface CitySearchProps {
   className?: string
   value?: string
   disabled?: boolean
+  showListingCounts?: boolean
 }
 
 export function CitySearch({
@@ -30,14 +33,36 @@ export function CitySearch({
   className,
   value = "",
   disabled = false,
+  showListingCounts = false,
 }: CitySearchProps) {
   const [query, setQuery] = useState(value)
   const [options, setOptions] = useState<CitySearchOption[]>([])
   const [loading, setLoading] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
+  const [cityListingCounts, setCityListingCounts] = useState<Record<string, number>>({})
+  const [isLoadingCounts, setIsLoadingCounts] = useState(false)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Only fetch listing counts if showListingCounts is true
+  useEffect(() => {
+    if (showListingCounts) {
+      const fetchCityListingCounts = async () => {
+        setIsLoadingCounts(true)
+        try {
+          const counts = await AccommodationService.getCityListingCounts()
+          setCityListingCounts(counts)
+        } catch (error) {
+          console.error('Error fetching city listing counts:', error)
+        } finally {
+          setIsLoadingCounts(false)
+        }
+      }
+      
+      fetchCityListingCounts()
+    }
+  }, [showListingCounts])
 
   // Update internal state when external value prop changes
   useEffect(() => {
@@ -119,8 +144,53 @@ export function CitySearch({
     }
   }, [])
 
+  // Get the listing count for a city or airport
+  const getListingCount = (cityName: string, airportCode?: string): number => {
+    // If counts are still loading, return a placeholder value
+    if (isLoadingCounts) {
+      return -1 // -1 indicates loading
+    }
+    
+    // For airports, try to get the corresponding city
+    if (airportCode) {
+      const cityForAirport = getAirportCity(airportCode);
+      if (cityForAirport && cityListingCounts[cityForAirport]) {
+        return cityListingCounts[cityForAirport];
+      }
+    }
+    
+    // Try to find the city in our counts
+    return cityListingCounts[cityName] || 0
+  }
+
+  // Get a display message for the listing count
+  const getListingCountDisplay = (cityName: string, airportCode?: string): string => {
+    const count = getListingCount(cityName, airportCode);
+    
+    if (count === -1) {
+      return "Loading...";
+    }
+    
+    if (airportCode) {
+      const cityForAirport = getAirportCity(airportCode);
+      if (cityForAirport) {
+        return `${count} ${count === 1 ? 'listing' : 'listings'} in ${cityForAirport}`;
+      }
+    }
+    
+    return `${count} ${count === 1 ? 'listing' : 'listings'}`;
+  };
+
   // Handle selection of an item from the dropdown
   const handleSelect = (option: CitySearchOption) => {
+    // Only check for zero listings if showListingCounts is true
+    if (showListingCounts) {
+      const listingCount = getListingCount(option.label, option.code);
+      if (listingCount === 0) {
+        return;
+      }
+    }
+    
     // Set the input value to the selected option's label
     const displayText = option.code 
       ? `${option.label} (${option.code})` 
@@ -165,27 +235,41 @@ export function CitySearch({
             </div>
           ) : (
             <ul className="py-1">
-              {options.map((option) => (
-                <li
-                  key={option.value}
-                  className="px-3 py-2 cursor-pointer hover:bg-accent flex items-center"
-                  onClick={() => handleSelect(option)}
-                >
-                  {option.type === 'AIRPORT' ? (
-                    <Plane className="mr-2 h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                  )}
-                  <div className="flex flex-col">
-                    <span className="font-medium">{option.label}</span>
-                  </div>
-                  {option.code && (
-                    <span className="ml-auto text-sm font-bold">
-                      {option.code}
-                    </span>
-                  )}
-                </li>
-              ))}
+              {options.map((option) => {
+                // Only check for zero listings if showListingCounts is true
+                const listingCount = showListingCounts ? getListingCount(option.label, option.code) : 1;
+                const isDisabled = showListingCounts && listingCount === 0;
+                
+                return (
+                  <li
+                    key={option.value}
+                    className={cn(
+                      "px-3 py-2 hover:bg-accent flex items-center",
+                      isDisabled ? "opacity-50 pointer-events-none" : "cursor-pointer"
+                    )}
+                    onClick={() => !isDisabled && handleSelect(option)}
+                  >
+                    {option.type === 'AIRPORT' ? (
+                      <Plane className="mr-2 h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
+                    )}
+                    <div className="flex flex-col">
+                      <span className="font-medium">{option.label}</span>
+                    </div>
+                    {option.code && (
+                      <span className="ml-auto text-sm font-bold">
+                        {option.code}
+                      </span>
+                    )}
+                    {showListingCounts && (
+                      <span className="ml-2 text-sm font-medium">
+                        {getListingCountDisplay(option.label, option.code)}
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

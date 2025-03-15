@@ -7,20 +7,44 @@ import { Check, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from './button'
 
-// Import the city data
+// Import the city data and accommodation service
 import citiesData from '@/lib/mockData/cities.json'
+import { AccommodationService } from '@/lib/api/accommodationService'
+import { getAirportCity } from '@/lib/utils/airportUtils'
 
 export interface CityAutocompleteProps extends Omit<InputProps, 'onChange'> {
   onChange: (value: string) => void;
   onCitySelect?: (city: { country: string; capital: string }) => void;
   value?: string;
+  showListingCounts?: boolean;
 }
 
 export const CityAutocomplete = React.forwardRef<HTMLInputElement, CityAutocompleteProps>(
-  ({ className, onChange, onCitySelect, value = '', ...props }, ref) => {
+  ({ className, onChange, onCitySelect, value = '', showListingCounts = false, ...props }, ref) => {
     const [open, setOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState(value)
     const [filteredCities, setFilteredCities] = useState<{ country: string; capital: string }[]>([])
+    const [cityListingCounts, setCityListingCounts] = useState<Record<string, number>>({})
+    const [isLoadingCounts, setIsLoadingCounts] = useState(false)
+    
+    // Only fetch listing counts if showListingCounts is true
+    useEffect(() => {
+      if (showListingCounts) {
+        const fetchCityListingCounts = async () => {
+          setIsLoadingCounts(true)
+          try {
+            const counts = await AccommodationService.getCityListingCounts()
+            setCityListingCounts(counts)
+          } catch (error) {
+            console.error('Error fetching city listing counts:', error)
+          } finally {
+            setIsLoadingCounts(false)
+          }
+        }
+        
+        fetchCityListingCounts()
+      }
+    }, [showListingCounts])
     
     // Synchronize internal state with external value
     useEffect(() => {
@@ -46,8 +70,54 @@ export const CityAutocomplete = React.forwardRef<HTMLInputElement, CityAutocompl
       setFilteredCities(cities.slice(0, 10))
     }, [searchTerm])
 
+    // Get the listing count for a city
+    const getListingCount = (cityName: string): number => {
+      // If counts are still loading, return a placeholder value
+      if (isLoadingCounts) {
+        return -1 // -1 indicates loading
+      }
+      
+      // Check if this might be an airport code
+      if (cityName.length === 3) {
+        const cityForAirport = getAirportCity(cityName);
+        if (cityForAirport && cityListingCounts[cityForAirport]) {
+          return cityListingCounts[cityForAirport];
+        }
+      }
+      
+      // Try to find the city in our counts
+      return cityListingCounts[cityName] || 0
+    }
+    
+    // Get a display message for the listing count
+    const getListingCountDisplay = (cityName: string): string => {
+      const count = getListingCount(cityName);
+      
+      if (count === -1) {
+        return "Loading...";
+      }
+      
+      // Check if this might be an airport code
+      if (cityName.length === 3) {
+        const cityForAirport = getAirportCity(cityName);
+        if (cityForAirport) {
+          return `${count} ${count === 1 ? 'listing' : 'listings'} in ${cityForAirport}`;
+        }
+      }
+      
+      return `${count} ${count === 1 ? 'listing' : 'listings'}`;
+    };
+
     // Handle explicit city selection from dropdown
     const handleSelect = (city: { country: string; capital: string }) => {
+      // Only check for zero listings if showListingCounts is true
+      if (showListingCounts) {
+        const listingCount = getListingCount(city.capital);
+        if (listingCount === 0) {
+          return;
+        }
+      }
+      
       setSearchTerm(city.capital)
       onChange(city.capital)
       if (onCitySelect) {
@@ -143,26 +213,44 @@ export const CityAutocomplete = React.forwardRef<HTMLInputElement, CityAutocompl
                 <div className="py-6 text-center text-sm">No cities found.</div>
               ) : (
                 <div>
-                  {filteredCities.map((city) => (
-                    <div
-                      key={`${city.country}-${city.capital}`}
-                      className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-                      onClick={() => handleSelect(city)}
-                      onMouseDown={(e) => {
-                        // This is critical - it prevents the input from losing focus
-                        e.preventDefault();
-                      }}
-                    >
-                      <Check
+                  {filteredCities.map((city) => {
+                    // Only check for zero listings if showListingCounts is true
+                    const listingCount = showListingCounts ? getListingCount(city.capital) : 1;
+                    const isDisabled = showListingCounts && listingCount === 0;
+                    
+                    return (
+                      <div
+                        key={`${city.country}-${city.capital}`}
                         className={cn(
-                          "mr-2 h-4 w-4",
-                          searchTerm === city.capital ? "opacity-100" : "opacity-0"
+                          "relative flex select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                          isDisabled ? "opacity-50 pointer-events-none" : "cursor-pointer"
                         )}
-                      />
-                      <span>{city.capital}</span>
-                      <span className="ml-2 text-sm text-muted-foreground">({city.country})</span>
-                    </div>
-                  ))}
+                        onClick={() => !isDisabled && handleSelect(city)}
+                        onMouseDown={(e) => {
+                          // This is critical - it prevents the input from losing focus
+                          e.preventDefault();
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            searchTerm === city.capital ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        <span>{city.capital}</span>
+                        <span className="ml-2 text-sm text-muted-foreground">({city.country})</span>
+                        {showListingCounts && (
+                          <span className="ml-auto text-sm font-medium">
+                            {listingCount === -1 ? (
+                              "Loading..."
+                            ) : (
+                              getListingCountDisplay(city.capital)
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

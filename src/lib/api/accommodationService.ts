@@ -1,6 +1,7 @@
 import { API_BASE_URL, DEFAULT_HEADERS, handleApiResponse, ApiError } from './config';
 import type { Accommodation, AccommodationSearchParams, AccommodationSearchResponse } from '../types/accommodation';
 import { getRandomImagesForProperty } from '../utils/images';
+import { airportToCityMapping, extractAirportCode, getAirportCity } from '../utils/airportUtils';
 
 // Cities data with their coordinates
 const cities = [
@@ -127,14 +128,29 @@ const generateMockAccommodations = (params: AccommodationSearchParams): Accommod
     
     // If no matches found, try to extract city name from airport code format (e.g., "LON_SKY")
     if (filteredCities.length === 0 && searchCity.includes('_')) {
-      // Extract the first part before underscore (e.g., "LON" from "LON_SKY")
-      const cityCode = searchCity.split('_')[0];
+      // Extract the airport code (e.g., "CDG" from "CDG_SKY")
+      const airportCode = extractAirportCode(searchCity);
       
-      // Try to find cities that might match this code (first 3 letters)
-      filteredCities = cities.filter(c => 
-        c.city.toLowerCase().startsWith(cityCode) || 
-        c.city.toLowerCase().includes(cityCode)
-      );
+      if (airportCode) {
+        // Try to find the corresponding city for this airport code
+        const mappedCity = getAirportCity(airportCode);
+        
+        if (mappedCity) {
+          // Find the city in our cities array
+          filteredCities = cities.filter(c => 
+            c.city.toLowerCase() === mappedCity.toLowerCase()
+          );
+        }
+      }
+      
+      // If still no matches, try to find cities that might match this code (first 3 letters)
+      if (filteredCities.length === 0) {
+        const cityCode = searchCity.split('_')[0].toLowerCase();
+        filteredCities = cities.filter(c => 
+          c.city.toLowerCase().startsWith(cityCode) || 
+          c.city.toLowerCase().includes(cityCode)
+        );
+      }
     }
     
     // If no cities match, log this for debugging
@@ -215,6 +231,22 @@ export class AccommodationService {
       // Check if we're using the example API URL
       if (API_BASE_URL.includes('example')) {
         console.warn('Using mock data as API_BASE_URL is not configured');
+        
+        // Handle airport codes in the city parameter
+        if (params.city && params.city.includes('_')) {
+          const modifiedParams = { ...params };
+          const airportCode = extractAirportCode(params.city);
+          
+          if (airportCode) {
+            const cityForAirport = getAirportCity(airportCode);
+            if (cityForAirport) {
+              console.log(`Mapping airport code ${airportCode} to city ${cityForAirport}`);
+              modifiedParams.city = cityForAirport;
+              return this.getMockResponse(modifiedParams);
+            }
+          }
+        }
+        
         return this.getMockResponse(params);
       }
 
@@ -352,5 +384,46 @@ export class AccommodationService {
     }
     
     return accommodation;
+  }
+
+  static async getCityListingCounts(): Promise<Record<string, number>> {
+    try {
+      // Check if we're using the example API URL
+      if (API_BASE_URL.includes('example')) {
+        console.warn('Using mock data as API_BASE_URL is not configured');
+        return this.getMockCityListingCounts();
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/accommodations/city-counts`,
+        {
+          method: 'GET',
+          headers: DEFAULT_HEADERS,
+        }
+      );
+
+      return handleApiResponse(response);
+    } catch (error) {
+      console.warn('API call failed, falling back to mock data:', error);
+      return this.getMockCityListingCounts();
+    }
+  }
+
+  private static getMockCityListingCounts(): Record<string, number> {
+    // Generate mock accommodations for all cities
+    const allAccommodations = generateMockAccommodations({});
+    
+    // Count accommodations by city
+    const cityCounts: Record<string, number> = {};
+    
+    allAccommodations.forEach(accommodation => {
+      const city = accommodation.location.city;
+      if (!cityCounts[city]) {
+        cityCounts[city] = 0;
+      }
+      cityCounts[city]++;
+    });
+    
+    return cityCounts;
   }
 } 
