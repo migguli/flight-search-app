@@ -3,39 +3,46 @@
 @tailwind utilities;
 
 :root {
-  /* Primary Colors - Simplified */
-  --primary-500: #0EA5E9;
-  --primary-600: #0284C7;
+  /* StayingBee Brand Colors */
+  --primary-500: #4C8BF5; /* AIESECer blue */
+  --primary-600: #3A78E0; /* Darker blue */
+  --primary-700: #2864C7; /* Even darker blue */
+  
+  /* Accent colors from StayingBee */
+  --accent-500: #FFBE2D; /* StayingBee yellow/gold */
+  --accent-600: #EDAF25; /* Darker gold */
+  --accent-700: #D99C1C; /* Even darker gold */
   
   /* Neutral Colors */
-  --neutral-100: #F1F5F9;
-  --neutral-900: #0F172A;
+  --neutral-50: #FFFDF5; /* Light cream background */
+  --neutral-100: #F8F6EE;
+  --neutral-900: #1A1A1A; /* Near black for text */
 
   /* Semantic Colors */
   --success-500: #22C55E;
   --error-500: #EF4444;
   --warning-500: #F59E0B;
   
-  /* Original shadow UI vars - simplified */
+  /* UI variables based on StayingBee colors */
   --radius: 0.5rem;
-  --background: white;
-  --foreground: black;
+  --background: var(--neutral-50);
+  --foreground: var(--neutral-900);
   --card: white;
-  --card-foreground: black;
+  --card-foreground: var(--neutral-900);
   --popover: white;
-  --popover-foreground: black;
-  --primary: #0EA5E9;
+  --popover-foreground: var(--neutral-900);
+  --primary: var(--primary-500);
   --primary-foreground: white;
-  --secondary: #F1F5F9;
-  --secondary-foreground: black;
-  --muted: #F1F5F9;
+  --secondary: var(--neutral-100);
+  --secondary-foreground: var(--neutral-900);
+  --muted: var(--neutral-100);
   --muted-foreground: #64748B;
-  --accent: #F8FAFC;
-  --accent-foreground: black;
+  --accent: var(--accent-500);
+  --accent-foreground: var(--neutral-900);
   --destructive: #EF4444;
   --border: #E2E8F0;
   --input: #E2E8F0;
-  --ring: #0EA5E9;
+  --ring: var(--primary-500);
 }
 
 .dark {
@@ -45,18 +52,18 @@
   --card-foreground: white;
   --popover: #1e293b;
   --popover-foreground: white;
-  --primary: #0EA5E9;
+  --primary: var(--primary-500);
   --primary-foreground: white;
   --secondary: #334155;
   --secondary-foreground: white;
   --muted: #334155;
   --muted-foreground: #CBD5E1;
-  --accent: #334155;
-  --accent-foreground: white;
+  --accent: var(--accent-500);
+  --accent-foreground: var(--neutral-900);
   --destructive: #EF4444;
   --border: rgba(255, 255, 255, 0.1);
   --input: rgba(255, 255, 255, 0.15);
-  --ring: #0EA5E9;
+  --ring: var(--primary-500);
 }
 
 @layer base {
