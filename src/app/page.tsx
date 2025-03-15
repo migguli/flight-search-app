@@ -153,17 +153,17 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       {/* Hero Section */}
-      <section className="hero-gradient text-white py-16 md:py-24">
+      <section className="bg-gray-100 text-black py-16 md:py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              <span className="animated-gradient-text">Discover Your Next Adventure</span>
+              Discover Your Next Adventure
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-white/90">
+            <p className="text-xl md:text-2xl mb-8 text-gray-600">
               Find and book flights to amazing destinations around the world
             </p>
             
-            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-white/20">
+            <div className="bg-white p-6 rounded-lg border border-gray-200">
               <FlightSearchForm onSearch={handleSearch} />
             </div>
           </div>
@@ -171,7 +171,7 @@ export default function Home() {
       </section>
 
       {/* Flight Search Results */}
-      <section id="search-results" className="py-12 bg-gray-50">
+      <section id="search-results" className="py-12 bg-white">
         <div className="container mx-auto px-4">
           {error && (
             <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
@@ -187,7 +187,7 @@ export default function Home() {
 
           {isLoadingFlights ? (
             <div className="text-center py-12">
-              <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+              <div className="animate-spin h-10 w-10 border-4 border-gray-400 border-t-transparent rounded-full mx-auto mb-4"></div>
               <p className="text-lg">Searching for the best flights...</p>
             </div>
           ) : searchResults.length > 0 ? (
@@ -205,7 +205,7 @@ export default function Home() {
                 <h2 className="text-2xl font-bold mb-6">Accommodations</h2>
                 {isLoadingAccommodations ? (
                   <div className="text-center py-8">
-                    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <div className="animate-spin h-8 w-8 border-4 border-gray-400 border-t-transparent rounded-full mx-auto mb-4"></div>
                     <p>Finding accommodations...</p>
                   </div>
                 ) : accommodations.length > 0 ? (
@@ -230,7 +230,7 @@ export default function Home() {
                 {popularDestinations.map(destination => (
                   <div 
                     key={destination.id} 
-                    className="relative overflow-hidden rounded-xl card-hover cursor-pointer"
+                    className="relative overflow-hidden rounded-lg cursor-pointer border border-gray-200"
                     onClick={() => searchPopularDestination(destination)}
                   >
                     <div className="aspect-w-16 aspect-h-9 relative">
@@ -240,10 +240,9 @@ export default function Home() {
                         fill
                         className="object-cover"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                      <div className="absolute bottom-0 left-0 p-4 text-white">
+                      <div className="absolute bottom-0 left-0 p-4 bg-white">
                         <h3 className="text-xl font-bold">{destination.name}</h3>
-                        <p className="text-sm opacity-90">Flights from €199</p>
+                        <p className="text-sm text-gray-600">Flights from €199</p>
                       </div>
                     </div>
                   </div>

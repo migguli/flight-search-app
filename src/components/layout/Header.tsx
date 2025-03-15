@@ -9,14 +9,11 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <header className="bg-gradient-to-r from-primary-600 to-primary-700 text-white sticky top-0 z-50 shadow-md">
+    <header className="bg-gray-100 text-black sticky top-0 z-50">
       <div className="container h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group z-10">
-          <span className="text-2xl font-display font-bold relative">
-            <span className="absolute -left-1 -top-1 opacity-0 group-hover:opacity-100 transition-all duration-500">
-              ✈️
-            </span>
-            <span className="animated-gradient-text">FlightFinder</span>
+        <Link href="/" className="flex items-center gap-2 z-10">
+          <span className="text-2xl font-display font-bold">
+            FlightFinder
           </span>
         </Link>
         
@@ -34,7 +31,7 @@ export default function Header() {
         <nav className="hidden md:block">
           <ul className="flex items-center gap-4">
             <li>
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/10" asChild>
+              <Button variant="ghost" size="sm" className="text-black hover:bg-gray-200" asChild>
                 <Link href="/search" className="flex items-center gap-1">
                   <Search size={16} />
                   <span>Search</span>
@@ -42,7 +39,7 @@ export default function Header() {
               </Button>
             </li>
             <li>
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/10" asChild>
+              <Button variant="ghost" size="sm" className="text-black hover:bg-gray-200" asChild>
                 <Link href="/deals" className="flex items-center gap-1">
                   <Plane size={16} />
                   <span>Deals</span>
@@ -50,7 +47,7 @@ export default function Header() {
               </Button>
             </li>
             <li>
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/10" asChild>
+              <Button variant="ghost" size="sm" className="text-black hover:bg-gray-200" asChild>
                 <Link href="/destinations" className="flex items-center gap-1">
                   <Map size={16} />
                   <span>Destinations</span>
@@ -58,7 +55,7 @@ export default function Header() {
               </Button>
             </li>
             <li>
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/10" asChild>
+              <Button variant="ghost" size="sm" className="text-black hover:bg-gray-200" asChild>
                 <Link href="/about" className="flex items-center gap-1">
                   <Info size={16} />
                   <span>About</span>
@@ -66,7 +63,7 @@ export default function Header() {
               </Button>
             </li>
             <li>
-              <Button className="bg-white text-primary-600 hover:bg-white/90" size="sm" asChild>
+              <Button className="bg-gray-300 text-black hover:bg-gray-400" size="sm" asChild>
                 <Link href="/account" className="flex items-center gap-1">
                   <User size={16} />
                   <span>My Account</span>
@@ -77,7 +74,7 @@ export default function Header() {
         </nav>
         
         {/* Mobile navigation overlay */}
-        <div className={`fixed inset-0 bg-primary-700 z-10 md:hidden transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`fixed inset-0 bg-white z-10 md:hidden transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="container pt-20 px-6">
             <nav>
               <ul className="flex flex-col space-y-6">
@@ -123,7 +120,7 @@ export default function Header() {
                 </li>
                 <li className="pt-6">
                   <Button 
-                    className="w-full bg-white text-primary-600 hover:bg-white/90 py-3" 
+                    className="w-full bg-gray-300 text-black hover:bg-gray-400 py-3" 
                     size="lg"
                     onClick={() => setIsMenuOpen(false)}
                     asChild
