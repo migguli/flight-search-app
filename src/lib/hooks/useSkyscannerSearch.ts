@@ -97,13 +97,24 @@ export const useSkyscannerSearch = () => {
       // Enhanced filtering with priority ranking
       // 1. Exact IATA code matches (highest priority)
       // 2. IATA code starts with query
-      // 3. City/airport name starts with query
+      // 3. City/airport name starts with query (word-by-word)
       // 4. City/airport name or IATA contains query
       const filteredAndRankedPlaces = commonPlaces
-        .filter(place => 
-          place.name.toLowerCase().includes(lowercaseQuery) || 
-          place.iata.toLowerCase().includes(lowercaseQuery)
-        )
+        .filter(place => {
+          // Check if name includes query (case insensitive)
+          const nameIncludes = place.name.toLowerCase().includes(lowercaseQuery);
+          
+          // Check if any word in the name starts with the query
+          const nameWords = place.name.split(' ');
+          const anyWordStartsWith = nameWords.some(word => 
+            word.toLowerCase().startsWith(lowercaseQuery)
+          );
+          
+          // Check if IATA code includes query
+          const iataIncludes = place.iata.toLowerCase().includes(lowercaseQuery);
+          
+          return nameIncludes || anyWordStartsWith || iataIncludes;
+        })
         .sort((a, b) => {
           // Exact IATA match gets highest priority
           if (a.iata.toLowerCase() === lowercaseQuery) return -1;
@@ -114,6 +125,15 @@ export const useSkyscannerSearch = () => {
           const bIataStartsWith = b.iata.toLowerCase().startsWith(lowercaseQuery);
           if (aIataStartsWith && !bIataStartsWith) return -1;
           if (!aIataStartsWith && bIataStartsWith) return 1;
+          
+          // Check if any word in the name starts with the query
+          const aNameWords = a.name.split(' ');
+          const bNameWords = b.name.split(' ');
+          const aWordStartsWith = aNameWords.some(word => word.toLowerCase().startsWith(lowercaseQuery));
+          const bWordStartsWith = bNameWords.some(word => word.toLowerCase().startsWith(lowercaseQuery));
+          
+          if (aWordStartsWith && !bWordStartsWith) return -1;
+          if (!aWordStartsWith && bWordStartsWith) return 1;
           
           // Name starts with query gets next priority
           const aNameStartsWith = a.name.toLowerCase().startsWith(lowercaseQuery);

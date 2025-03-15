@@ -32,7 +32,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Card } from '@/components/ui/card'
-import { SkyscannerLocationAutocomplete, LocationOption } from '@/components/ui/skyscanner-location-autocomplete'
+import { CitySearch, CitySearchOption } from '@/components/ui/city-search'
 import { useSkyscannerSearch } from '@/lib/hooks/useSkyscannerSearch'
 import { config } from '@/lib/config'
 import { cn } from '@/lib/utils'
@@ -75,8 +75,8 @@ interface FlightSearchFormProps {
 
 export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) => {
   const [isRoundTrip, setIsRoundTrip] = useState(true)
-  const [originLocation, setOriginLocation] = useState<LocationOption | null>(null);
-  const [destinationLocation, setDestinationLocation] = useState<LocationOption | null>(null);
+  const [originLocation, setOriginLocation] = useState<CitySearchOption | null>(null);
+  const [destinationLocation, setDestinationLocation] = useState<CitySearchOption | null>(null);
   const { searchPlaces } = useSkyscannerSearch();
 
   const defaultValues = {
@@ -97,16 +97,14 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
   }, [])
 
   // Handle location selection and ensure form values are synchronized
-  const handleOriginLocationSelect = (location: LocationOption) => {
+  const handleOriginLocationSelect = (location: CitySearchOption) => {
     setOriginLocation(location);
-    // Ensure form value matches the selected location
-    form.setValue('origin', location.label, { shouldValidate: true });
+    form.setValue('origin', location.value);
   }
 
-  const handleDestinationLocationSelect = (location: LocationOption) => {
+  const handleDestinationLocationSelect = (location: CitySearchOption) => {
     setDestinationLocation(location);
-    // Ensure form value matches the selected location
-    form.setValue('destination', location.label, { shouldValidate: true });
+    form.setValue('destination', location.value);
   }
 
   // Clear/reset the form
@@ -166,11 +164,11 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
                 <FormItem className="flex flex-col">
                   <FormLabel>Origin</FormLabel>
                   <FormControl>
-                    <SkyscannerLocationAutocomplete
+                    <CitySearch
                       placeholder="Search for airports or cities..."
                       onSearch={searchPlaces}
                       onSelect={handleOriginLocationSelect}
-                      value={originLocation?.value}
+                      value={originLocation ? originLocation.label + (originLocation.code ? ` (${originLocation.code})` : '') : ''}
                     />
                   </FormControl>
                   <FormMessage />
@@ -185,11 +183,11 @@ export const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch }) 
                 <FormItem className="flex flex-col">
                   <FormLabel>Destination</FormLabel>
                   <FormControl>
-                    <SkyscannerLocationAutocomplete
+                    <CitySearch
                       placeholder="Search for airports or cities..."
                       onSearch={searchPlaces}
                       onSelect={handleDestinationLocationSelect}
-                      value={destinationLocation?.value}
+                      value={destinationLocation ? destinationLocation.label + (destinationLocation.code ? ` (${destinationLocation.code})` : '') : ''}
                     />
                   </FormControl>
                   <FormMessage />

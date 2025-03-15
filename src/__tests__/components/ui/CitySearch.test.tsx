@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SkyscannerLocationAutocomplete } from '@/components/ui/skyscanner-location-autocomplete';
+import { CitySearch } from '@/components/ui/city-search';
 import { SkyscannerPlace } from '@/lib/types/skyscanner';
 
 // Mock data for test
@@ -23,7 +23,7 @@ const mockSearch = jest.fn().mockImplementation(async (query: string) => {
 
 const mockOnSelect = jest.fn();
 
-describe('SkyscannerLocationAutocomplete', () => {
+describe('CitySearch', () => {
   beforeEach(() => {
     // Clear mocks before each test
     jest.clearAllMocks();
@@ -31,14 +31,14 @@ describe('SkyscannerLocationAutocomplete', () => {
 
   test('renders with placeholder text', () => {
     render(
-      <SkyscannerLocationAutocomplete 
+      <CitySearch 
         placeholder="Test placeholder" 
         onSearch={mockSearch} 
         onSelect={mockOnSelect} 
       />
     );
     
-    expect(screen.getByRole('combobox')).toHaveTextContent('Test placeholder');
+    expect(screen.getByPlaceholderText('Test placeholder')).toBeInTheDocument();
   });
 
   test('displays "No locations found" when search returns no results', async () => {
@@ -46,16 +46,12 @@ describe('SkyscannerLocationAutocomplete', () => {
     const emptySearch = jest.fn().mockResolvedValue([]);
     
     render(
-      <SkyscannerLocationAutocomplete 
+      <CitySearch 
         placeholder="Search locations..." 
         onSearch={emptySearch} 
         onSelect={mockOnSelect} 
       />
     );
-    
-    // Open the dropdown
-    const button = screen.getByRole('combobox');
-    fireEvent.click(button);
     
     // Type a search term
     const input = screen.getByPlaceholderText('Search locations...');
@@ -63,22 +59,18 @@ describe('SkyscannerLocationAutocomplete', () => {
     
     // Wait for the "No locations found" message
     await waitFor(() => {
-      expect(screen.getByText('No locations found.')).toBeInTheDocument();
+      expect(screen.getByText('No locations found')).toBeInTheDocument();
     });
   });
 
   test('requires at least 2 characters to start searching', async () => {
     render(
-      <SkyscannerLocationAutocomplete 
+      <CitySearch 
         placeholder="Search locations..." 
         onSearch={mockSearch} 
         onSelect={mockOnSelect} 
       />
     );
-    
-    // Open the dropdown
-    const button = screen.getByRole('combobox');
-    fireEvent.click(button);
     
     // Type a single character
     const input = screen.getByPlaceholderText('Search locations...');
@@ -95,16 +87,12 @@ describe('SkyscannerLocationAutocomplete', () => {
 
   test('calls search function when typing at least 2 characters', async () => {
     render(
-      <SkyscannerLocationAutocomplete 
+      <CitySearch 
         placeholder="Search locations..." 
         onSearch={mockSearch} 
         onSelect={mockOnSelect} 
       />
     );
-    
-    // Open the dropdown
-    const button = screen.getByRole('combobox');
-    fireEvent.click(button);
     
     // Type a search term with at least 2 characters
     const input = screen.getByPlaceholderText('Search locations...');
@@ -114,5 +102,39 @@ describe('SkyscannerLocationAutocomplete', () => {
     await waitFor(() => {
       expect(mockSearch).toHaveBeenCalledWith('Lo');
     });
+  });
+
+  test('selects an option when clicked', async () => {
+    render(
+      <CitySearch 
+        placeholder="Search locations..." 
+        onSearch={mockSearch} 
+        onSelect={mockOnSelect} 
+      />
+    );
+    
+    // Type a search term
+    const input = screen.getByPlaceholderText('Search locations...');
+    await userEvent.type(input, 'London');
+    
+    // Wait for results to appear
+    await waitFor(() => {
+      expect(mockSearch).toHaveBeenCalledWith('London');
+    });
+    
+    // Click on the first result
+    const firstResult = await screen.findByText('London');
+    fireEvent.click(firstResult);
+    
+    // Check that onSelect was called with the correct option
+    expect(mockOnSelect).toHaveBeenCalledWith(expect.objectContaining({
+      value: 'LON_SKY',
+      label: 'London',
+      type: 'CITY',
+      code: 'LON'
+    }));
+    
+    // Input should be updated with the selected value
+    expect(input).toHaveValue('London (LON)');
   });
 }); 

@@ -9,7 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { useSkyscannerSearch } from '@/lib/hooks/useSkyscannerSearch';
-import { SkyscannerLocationAutocomplete, LocationOption } from '@/components/ui/skyscanner-location-autocomplete';
+import { CitySearch, CitySearchOption } from '@/components/ui/city-search';
 import type { Accommodation } from '@/lib/types/accommodation';
 
 interface ApartmentDetailsClientProps {
@@ -24,13 +24,13 @@ export function ApartmentDetailsClient({ apartment, error }: ApartmentDetailsCli
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [bookingError, setBookingError] = useState<string | null>(null);
-  const [searchLocation, setSearchLocation] = useState<LocationOption | null>(null);
+  const [searchLocation, setSearchLocation] = useState<CitySearchOption | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   
   const { searchPlaces } = useSkyscannerSearch();
   
-  const handleLocationSelect = async (location: LocationOption) => {
+  const handleLocationSelect = async (location: CitySearchOption) => {
     setSearchLocation(location);
     setSearchError(null);
     setIsSearching(true);
@@ -102,11 +102,11 @@ export function ApartmentDetailsClient({ apartment, error }: ApartmentDetailsCli
             <label htmlFor="location-search" className="text-sm font-medium">
               Location
             </label>
-            <SkyscannerLocationAutocomplete
+            <CitySearch
               placeholder="Search for airports or cities..."
               onSearch={searchPlaces}
               onSelect={handleLocationSelect}
-              value={searchLocation?.value}
+              value={searchLocation ? searchLocation.label + (searchLocation.code ? ` (${searchLocation.code})` : '') : ''}
               disabled={isSearching}
             />
             {searchError && (
