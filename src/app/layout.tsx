@@ -3,7 +3,6 @@ import { inter, systemFont } from "./fonts";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SkipToContent from "@/components/layout/SkipToContent";
-
 import "./globals.css";
 import "@/styles/fonts.css";
 
@@ -19,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${systemFont.variable}`}>
-      <body className="min-h-screen flex flex-col font-sans bg-white text-black">
+      <body className="min-h-screen flex flex-col font-sans bg-background text-foreground">
         <SkipToContent />
         <Header />
         <main id="main-content" className="flex-grow container py-8" tabIndex={-1}>
