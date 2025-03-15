@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
+import { Badge } from '../ui/badge';
 import Image from 'next/image';
 import { Clock, Navigation, Calendar, DollarSign, Plane, ArrowRight } from 'lucide-react';
 import type { Flight as APIFlight } from '@/lib/types/flight';
-import type { Accommodation } from '@/lib/types/accommodation';
-import { AccommodationService } from '@/lib/api/accommodationService';
 import { cn } from '@/lib/utils';
 
 // Extended flight type that includes UI-specific fields
@@ -32,8 +31,8 @@ export const transformAPIFlight = (apiFlight: APIFlight): Flight => {
     id: apiFlight.id,
     airline: firstSegment.airline.name,
     flightNumber: firstSegment.flightNumber,
-    departureTime: firstSegment.departureTime,
-    arrivalTime: lastSegment.arrivalTime,
+    departureTime: firstSegment.departureTime || '',
+    arrivalTime: lastSegment.arrivalTime || '',
     origin: firstSegment.departureAirport.code,
     destination: lastSegment.arrivalAirport.code,
     price: apiFlight.price.amount,
@@ -59,7 +58,7 @@ const FlightCard = ({ flight, className, onSelect }: { flight: Flight; className
   }).format(flight.price);
 
   return (
-    <Card className={cn("hover:shadow-lg transition-shadow duration-300", className)}>
+    <Card className={cn("transition-shadow duration-300", className)}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -76,7 +75,12 @@ const FlightCard = ({ flight, className, onSelect }: { flight: Flight; className
                   onError={(e) => {
                     // Fallback if image fails to load
                     const target = e.target as HTMLImageElement;
-                    target.src = '/airlines/default-airline.png';
+                    // Only set fallback if not already using the fallback
+                    if (!target.src.includes('default-airline')) {
+                      target.src = '/airlines/default-airline.svg';
+                    }
+                    // Prevent further error handling to avoid infinite loop
+                    target.onerror = null;
                   }}
                 />
               )}
@@ -96,7 +100,7 @@ const FlightCard = ({ flight, className, onSelect }: { flight: Flight; className
           <div className="text-center">
             <p className="text-lg font-bold">{flight.origin}</p>
             <p className="text-sm text-neutral-500" aria-label="Departure time">
-              {new Date(flight.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {flight.departureTime ? new Date(flight.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
             </p>
           </div>
           <div className="flex-1 flex flex-col items-center mx-4">
@@ -119,7 +123,7 @@ const FlightCard = ({ flight, className, onSelect }: { flight: Flight; className
           <div className="text-center">
             <p className="text-lg font-bold">{flight.destination}</p>
             <p className="text-sm text-neutral-500" aria-label="Arrival time">
-              {new Date(flight.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {flight.arrivalTime ? new Date(flight.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
             </p>
           </div>
         </div>
@@ -128,18 +132,10 @@ const FlightCard = ({ flight, className, onSelect }: { flight: Flight; className
             <Clock size={16} className="text-neutral-400" aria-hidden="true" />
             <span className="text-sm">{flight.duration}</span>
           </div>
-          <Button 
-            size="sm" 
-            onClick={() => onSelect?.(flight)}
-            aria-label={`Select ${flight.airline} flight ${flight.flightNumber} from ${flight.origin} to ${flight.destination}`}
-          >
-            Select
-          </Button>
           {flight.bookingUrl && (
             <Button 
-              variant="outline" 
+              variant="default" 
               size="sm" 
-              className="ml-2" 
               onClick={() => window.open(flight.bookingUrl, '_blank')}
               aria-label={`Book ${flight.airline} flight ${flight.flightNumber} (opens in new tab)`}
             >
@@ -160,69 +156,37 @@ export const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
   onSelect,
 }) => {
   const [expandedCity, setExpandedCity] = useState<string | null>(null);
-  const [cityAccommodations, setCityAccommodations] = useState<Record<string, Accommodation[]>>({});
-  const [isLoadingAccommodations, setIsLoadingAccommodations] = useState<Record<string, boolean>>({});
   const [expandedFlight, setExpandedFlight] = useState<string | null>(null);
-
-  // Fetch accommodations for a city when expanded
-  useEffect(() => {
-    if (expandedCity && !cityAccommodations[expandedCity]) {
-      const fetchAccommodations = async () => {
-        setIsLoadingAccommodations(prev => ({ ...prev, [expandedCity]: true }));
-        try {
-          // Clean up city name - remove any airport codes or special formats
-          let cityNameForSearch = expandedCity;
-          
-          // Handle airport codes in format like "LON_SKY"
-          if (cityNameForSearch.includes('_')) {
-            // Extract the first part before underscore (e.g., "LON" from "LON_SKY")
-            const cityCode = cityNameForSearch.split('_')[0];
-            console.log(`Extracted city code ${cityCode} from ${cityNameForSearch}`);
-            // The accommodationService will handle the matching
-          }
-          
-          // Remove anything in parentheses like (LON)
-          cityNameForSearch = cityNameForSearch.replace(/\([^)]*\)/g, '').trim();
-          
-          console.log(`Searching accommodations for: "${cityNameForSearch}"`);
-          
-          const response = await AccommodationService.searchAccommodations({
-            city: cityNameForSearch,
-            guests: 2 // Default to 2 guests
-          });
-          setCityAccommodations(prev => ({ 
-            ...prev, 
-            [expandedCity]: response.accommodations 
-          }));
-        } catch (error) {
-          console.error(`Error fetching accommodations for ${expandedCity}:`, error);
-          setCityAccommodations(prev => ({ ...prev, [expandedCity]: [] }));
-        } finally {
-          setIsLoadingAccommodations(prev => ({ ...prev, [expandedCity]: false }));
-        }
-      };
-      
-      fetchAccommodations();
-    }
-  }, [expandedCity, cityAccommodations]);
 
   // Format date to display in a more readable format
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: true 
-    });
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      return date.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+      });
+    } catch (e) {
+      return '';
+    }
   };
 
   // Format date to display day and month
   const formatDay = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    });
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    } catch (e) {
+      return '';
+    }
   };
 
   // Format price to display as currency
@@ -355,7 +319,7 @@ export const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
     <div className="space-y-4">
       {destinationSummary.map((summary) => (
         <React.Fragment key={summary.destination}>
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="transition-shadow">
             <CardHeader>
               <CardTitle className="text-xl">Flights to {summary.destination}</CardTitle>
             </CardHeader>
@@ -393,97 +357,6 @@ export const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
               )}
             </CardContent>
           </Card>
-          
-          {/* Separate Accommodations Card */}
-          {expandedCity === summary.destination && (
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-xl">Best Places to Stay in {summary.destination}</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                {isLoadingAccommodations[summary.destination] ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="p-3 border rounded-lg">
-                        <div className="flex flex-col md:flex-row gap-4">
-                          <div className="w-full md:w-1/4 h-32 bg-gray-200 rounded-lg animate-pulse"></div>
-                          <div className="w-full md:w-3/4 space-y-2">
-                            <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                            <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
-                            <div className="h-4 bg-gray-200 rounded w-1/4 animate-pulse"></div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : cityAccommodations[summary.destination]?.length > 0 ? (
-                  <div className="space-y-3">
-                    {cityAccommodations[summary.destination]
-                      .sort((a, b) => b.rating - a.rating)
-                      .slice(0, 3)
-                      .map((accommodation) => (
-                        <div key={accommodation.id} className="p-3 border rounded-lg hover:bg-gray-50">
-                          <div className="flex flex-col md:flex-row gap-4">
-                            <div className="w-full md:w-1/4 h-32 relative rounded-lg overflow-hidden">
-                              <Image
-                                src={accommodation.images[0]}
-                                alt={accommodation.title}
-                                fill
-                                sizes="(max-width: 768px) 100vw, 25vw"
-                                style={{ objectFit: 'cover' }}
-                              />
-                            </div>
-                            <div className="w-full md:w-3/4">
-                              <div className="flex justify-between">
-                                <div>
-                                  <h3 className="font-semibold">{accommodation.title}</h3>
-                                  <div className="flex items-center mt-1">
-                                    <span className="text-yellow-500">★</span>
-                                    <span className="ml-1">{accommodation.rating.toFixed(1)}</span>
-                                    <span className="text-gray-500 ml-1">
-                                      ({accommodation.numberOfReviews} reviews)
-                                    </span>
-                                    {accommodation.host.isSuperhost && (
-                                      <span className="ml-2 px-1.5 py-0.5 text-xs bg-rose-100 text-rose-800 rounded">
-                                        Superhost
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className="text-sm text-gray-600 mt-1">
-                                    {accommodation.capacity.guests} guests • {accommodation.capacity.bedrooms} bedroom
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-bold">${accommodation.price.amount}</p>
-                                  <p className="text-sm text-gray-600">per {accommodation.price.per}</p>
-                                </div>
-                              </div>
-                              <div className="mt-2 flex flex-wrap gap-1">
-                                {accommodation.amenities.slice(0, 3).map((amenity, index) => (
-                                  <span
-                                    key={index}
-                                    className="inline-block px-2 py-0.5 text-xs bg-gray-100 rounded-full text-gray-600"
-                                  >
-                                    {amenity}
-                                  </span>
-                                ))}
-                                {accommodation.amenities.length > 3 && (
-                                  <span className="inline-block px-2 py-0.5 text-xs bg-gray-100 rounded-full text-gray-600">
-                                    +{accommodation.amenities.length - 3} more
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-600 text-center py-3">No accommodations found in this city</p>
-                )}
-              </CardContent>
-            </Card>
-          )}
         </React.Fragment>
       ))}
       
