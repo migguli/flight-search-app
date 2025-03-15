@@ -29,7 +29,7 @@ const Alert = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & 
   VariantProps<typeof alertVariants> & 
-  { 
+  {
     icon?: React.ReactNode;
     dismissible?: boolean;
     onDismiss?: () => void;
@@ -75,8 +75,7 @@ const Alert = React.forwardRef<
       )}
     </div>
   );
-}))
-Alert.displayName = "Alert"
+})
 
 const AlertTitle = React.forwardRef<
   HTMLParagraphElement,
