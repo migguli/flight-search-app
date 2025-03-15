@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Always use aws with terraform and opentofu.
+Use remote state in s3 bucket.
+We are using asdf.
+If aws iam credentials do not have needed access rights, do not try to circumvent that. Ask for more access rights. 
+Check [combined-policy.json](mdc:terraform/combined-policy.json) file for what rights you have, and make changes there if needed. Ask developer to update policy manually.

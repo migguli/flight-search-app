@@ -1,4 +1,5 @@
-# S3 Access Logging Bucket
+# S3 Access Logging Bucket - DISABLED due to permissions
+/*
 resource "aws_s3_bucket" "logs" {
   bucket = "${var.app_name}-${var.environment}-logs"
 }
@@ -22,6 +23,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "logs" {
   rule {
     id     = "log-expiration"
     status = "Enabled"
+    
+    filter {
+      prefix = ""
+    }
 
     expiration {
       days = 90 # Delete logs after 90 days
@@ -35,8 +40,10 @@ resource "aws_s3_bucket_logging" "website" {
   target_bucket = aws_s3_bucket.logs.id
   target_prefix = "s3-access-logs/"
 }
+*/
 
-# CloudWatch Alarms for the S3 bucket
+# CloudWatch Alarms for the S3 bucket - DISABLED due to permissions
+/*
 resource "aws_cloudwatch_metric_alarm" "s3_4xx_errors" {
   alarm_name          = "${var.app_name}-${var.environment}-s3-4xx-errors"
   comparison_operator = "GreaterThanThreshold"
@@ -150,4 +157,5 @@ resource "aws_cloudwatch_dashboard" "main" {
       }
     ]
   })
-} 
+}
+*/ 

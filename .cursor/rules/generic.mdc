@@ -372,23 +372,6 @@ lib/@brand-info.ts - Brand information for the application, used in generation o
       - If if did not help, open up a temp file in /temp/fix_backlog.md and update what was tried and what did not work. Continue back to implement fix.
   </fix>
 
-  <validate>
-  Write comprehensive tests, run them and fix any errors. 
-   1. read_file architecture.md for understanding of code structure and test practises
-   2. Run fetch_rules for fetching user provided rules and instructions
-   3. write unit tests for the feature
-   4. execute unit tests and fix each errors according to <fix> process
-   5. write e2e tests for the feature
-   6. execute e2e and fix each errors according to <fix> process
-   7. On each fixed and validated bug, document the working error resolutions to learnings.md, including any links that you found usable.
-   8. Repeat until all tests succeed
-  </validate>
-
-  <record>
-   Record the changes done and update backlog
-   1. write summary of what you did in the ai_changelog.md and update the todo list in the todo.md (do not remove any tasks, just update their status)
-  </record>
-
   <design>
    Design a feature.
    1. read_file frontend.md for understanding the UI requirements and specifications like colors
@@ -404,14 +387,6 @@ lib/@brand-info.ts - Brand information for the application, used in generation o
     2. Develop the full e2e code changes for the requested feature
   </develop>
 
-  <invent>
-    1. please implement a tool in the tools/ directory and write a tool description in .cursorrules file.
-    2. Execute the tool and fix any errors until it succesfully returns the results you wanted
-  </invent>
-
-  <commit>
-    1. please commit all pending changes using git add . and git commit with descriptive message
-  </commit>
 </actions>
 
 For each request, please execute the following steps one by one.":

@@ -32,13 +32,6 @@ resource "aws_cloudfront_distribution" "website" {
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
-    
-    # Add Lambda@Edge function for security headers
-    lambda_function_association {
-      event_type   = "origin-response"
-      lambda_arn   = aws_lambda_function.security_headers.qualified_arn
-      include_body = false
-    }
   }
   
   # This special config handles routing for SPA (Single Page Application)
@@ -65,17 +58,16 @@ resource "aws_cloudfront_distribution" "website" {
     cloudfront_default_certificate = true
   }
   
-  # Add logging configuration
+  # Add logging configuration - DISABLED due to permissions
+  /*
   logging_config {
     include_cookies = false
     bucket          = aws_s3_bucket.logs.bucket_domain_name
     prefix          = "cloudfront-logs/"
   }
+  */
   
   tags = {
     Name = "${var.app_name}-${var.environment}-distribution"
   }
-
-  # Ensure that the Lambda@Edge function is created before the CloudFront distribution
-  depends_on = [aws_lambda_function.security_headers]
 } 

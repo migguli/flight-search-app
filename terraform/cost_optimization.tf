@@ -5,6 +5,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "website" {
   rule {
     id     = "abort-incomplete-multipart-upload"
     status = "Enabled"
+    
+    filter {
+      prefix = ""
+    }
 
     abort_incomplete_multipart_upload {
       days_after_initiation = 7
@@ -12,7 +16,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "website" {
   }
 }
 
-# CloudWatch Budget Alert for AWS costs
+# CloudWatch Budget Alert for AWS costs - DISABLED due to permissions
+/*
 resource "aws_budgets_budget" "monthly" {
   name              = "${var.app_name}-${var.environment}-monthly-budget"
   budget_type       = "COST"
@@ -44,4 +49,5 @@ resource "aws_budgets_budget" "monthly" {
     notification_type          = "FORECASTED"
     subscriber_email_addresses = [var.notification_email]
   }
-} 
+}
+*/ 
