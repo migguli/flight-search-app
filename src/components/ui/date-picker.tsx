@@ -72,17 +72,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           showYearDropdown
           dropdownMode="select"
           // Improve accessibility with proper roles
-          popperProps={{
-            strategy: "fixed",
-            modifiers: [
-              {
-                name: "offset",
-                options: {
-                  offset: [0, 8],
-                },
-              },
-            ],
-          }}
+          popperClassName="datepicker-popper"
           // Ensure calendar works with screen readers
           calendarClassName="aria-calendar"
         />
